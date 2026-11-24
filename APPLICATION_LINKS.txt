@@ -1,0 +1,21 @@
+================================================================================
+STUDENT PROGRESS REPORTS - APPLICATION LINKS
+================================================================================
+
+1. Live Web Application (Permanent Link):
+   https://infonbnsdesign-cmd.github.io/student-progress-reports/
+
+   Use this link to open and use the application directly in any web browser 
+   (Chrome, Edge, Firefox, Safari) on any computer, laptop, tablet, or phone 
+   without installing anything.
+
+--------------------------------------------------------------------------------
+
+2. GitHub Source Code Repository:
+   https://github.com/infonbnsdesign-cmd/student-progress-reports
+
+--------------------------------------------------------------------------------
+
+Generated on: 24/11/2026
+School: Nava Bharath National School
+================================================================================
