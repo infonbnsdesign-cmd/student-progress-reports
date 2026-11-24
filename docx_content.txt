@@ -1,0 +1,132 @@
+﻿student progress reports
+ application
+1. Input
+The application will read the Excel file containing marks.
+Sheet/Page name = Class name
+Example:
+Grade 1-A 
+Grade 1-B 
+Grade 2-A 
+2. Excel Format
+The application will identify:
+WT-1, WT-2, ... WT-9
+ → Weekly Tests 
+MT-1, MT-2
+ → Monthly Tests 
+Row 2
+ → Subject names 
+Sheet name
+ → Class name 
+Example:
+<w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblCellSpacing w:w="15" w:type="dxa"/><w:tblCellMar><w:top w:w="15" w:type="dxa"/><w:left w:w="15" w:type="dxa"/><w:bottom w:w="15" w:type="dxa"/><w:right w:w="15" w:type="dxa"/></w:tblCellMar><w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="0" w:noVBand="1"/></w:tblPr><w:tblGrid><w:gridCol w:w="1388"/><w:gridCol w:w="704"/><w:gridCol w:w="641"/><w:gridCol w:w="757"/></w:tblGrid><w:tr w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w14:paraId="78E4CF2F" w14:textId="77777777"><w:trPr><w:tblHeader/><w:tblCellSpacing w:w="15" w:type="dxa"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="3BC00DB5" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00E77C6F"><w:rPr><w:b/><w:bCs/></w:rPr><w:t>Student Name
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="51DA9D63" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00E77C6F"><w:rPr><w:b/><w:bCs/></w:rPr><w:t>English
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="4AD4C77D" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00E77C6F"><w:rPr><w:b/><w:bCs/></w:rPr><w:t>Maths
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="5FF5EF29" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00E77C6F"><w:rPr><w:b/><w:bCs/></w:rPr><w:t>Science
+<w:trPr><w:tblCellSpacing w:w="15" w:type="dxa"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="7CED2F5D" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>WT-1
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="323EF534" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>18
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="34518D74" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>16
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="37AC7282" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>19
+<w:trPr><w:tblCellSpacing w:w="15" w:type="dxa"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="55CB0E8E" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>WT-2
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="69FA45CF" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>17
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="41550970" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>19
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="7657F576" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>18
+<w:trPr><w:tblCellSpacing w:w="15" w:type="dxa"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="26A9F089" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>WT-3
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="607D7EF3" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>20
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="497C1F8C" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>18
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="39D30D95" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>17
+The application will calculate the 
+subject-wise average
+ automatically.
+3. Report Design
+Top
+School Logo
+Below Logo
+Student Name:
+ Student Name
+Class:
+ Class Name
+WEEKLY TEST REPORT
+The application will automatically find available exams from Excel:
+☑
+ WT-1
+☑
+ WT-2
+☑
+ WT-3
+☑
+ WT-4
+...
+☑
+ WT-9
+The user can select which weekly tests to include.
+Then it displays:
+<w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblCellSpacing w:w="15" w:type="dxa"/><w:tblCellMar><w:top w:w="15" w:type="dxa"/><w:left w:w="15" w:type="dxa"/><w:bottom w:w="15" w:type="dxa"/><w:right w:w="15" w:type="dxa"/></w:tblCellMar><w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="0" w:noVBand="1"/></w:tblPr><w:tblGrid><w:gridCol w:w="751"/><w:gridCol w:w="533"/><w:gridCol w:w="533"/><w:gridCol w:w="533"/><w:gridCol w:w="811"/></w:tblGrid><w:tr w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w14:paraId="786C4B5D" w14:textId="77777777"><w:trPr><w:tblHeader/><w:tblCellSpacing w:w="15" w:type="dxa"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="6A0BA8FE" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00E77C6F"><w:rPr><w:b/><w:bCs/></w:rPr><w:t>Subject
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="5C5F0CB6" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00E77C6F"><w:rPr><w:b/><w:bCs/></w:rPr><w:t>WT-1
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="4577864C" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00E77C6F"><w:rPr><w:b/><w:bCs/></w:rPr><w:t>WT-2
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="1567E5D5" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00E77C6F"><w:rPr><w:b/><w:bCs/></w:rPr><w:t>WT-3
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="4DE8D626" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00E77C6F"><w:rPr><w:b/><w:bCs/></w:rPr><w:t>Average
+<w:trPr><w:tblCellSpacing w:w="15" w:type="dxa"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="6D942DA3" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>English
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="68A7B3FC" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>18
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="04B0A870" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>17
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="083A74A8" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>20
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="459A0BB3" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>18.33
+<w:trPr><w:tblCellSpacing w:w="15" w:type="dxa"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="727BC672" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>Maths
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="1178F59C" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>16
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="68730E41" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>19
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="20F6B060" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>18
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="32D927C5" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>17.67
+<w:trPr><w:tblCellSpacing w:w="15" w:type="dxa"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="19BD76C7" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>Science
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="148265CB" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>19
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="6987EABF" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>18
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="1E457E9A" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>17
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="6B168BEC" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>18.00
+MONTHLY TEST REPORT
+Available exams will be automatically detected:
+☑
+ MT-1
+☑
+ MT-2
+Example:
+<w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblCellSpacing w:w="15" w:type="dxa"/><w:tblCellMar><w:top w:w="15" w:type="dxa"/><w:left w:w="15" w:type="dxa"/><w:bottom w:w="15" w:type="dxa"/><w:right w:w="15" w:type="dxa"/></w:tblCellMar><w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="0" w:noVBand="1"/></w:tblPr><w:tblGrid><w:gridCol w:w="751"/><w:gridCol w:w="526"/><w:gridCol w:w="526"/><w:gridCol w:w="811"/></w:tblGrid><w:tr w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w14:paraId="2AD2EE24" w14:textId="77777777"><w:trPr><w:tblHeader/><w:tblCellSpacing w:w="15" w:type="dxa"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="4E011EB1" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00E77C6F"><w:rPr><w:b/><w:bCs/></w:rPr><w:t>Subject
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="1C0341A6" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00E77C6F"><w:rPr><w:b/><w:bCs/></w:rPr><w:t>MT-1
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="43FA2C82" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00E77C6F"><w:rPr><w:b/><w:bCs/></w:rPr><w:t>MT-2
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="6F8A61B2" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:pPr><w:r w:rsidRPr="00E77C6F"><w:rPr><w:b/><w:bCs/></w:rPr><w:t>Average
+<w:trPr><w:tblCellSpacing w:w="15" w:type="dxa"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="790693F2" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>English
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="0C66A5F3" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>75
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="58F918A4" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>82
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="673342B6" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>78.5
+<w:trPr><w:tblCellSpacing w:w="15" w:type="dxa"/></w:trPr><w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="0EFDA823" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>Maths
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="34280DF9" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>80
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="7FACD954" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>85
+<w:tcPr><w:tcW w:w="0" w:type="auto"/><w:vAlign w:val="center"/><w:hideMark/></w:tcPr><w:p w14:paraId="251A5D7C" w14:textId="77777777" w:rsidR="00E77C6F" w:rsidRPr="00E77C6F" w:rsidRDefault="00E77C6F" w:rsidP="00E77C6F"><w:r w:rsidRPr="00E77C6F"><w:t>82.5
+4. Graph
+Below the Monthly Test Report:
+Student Performance Graph
+X-axis:
+ Subjects 
+Y-axis:
+ Marks 
+Separate line/bar for: 
+MT-1 
+MT-2 
+Example:
+English | Maths | Science | Tamil
+The graph will clearly show the student's performance in each subject across the monthly tests.
+5. Windows Application Features
+I recommend creating it as a 
+Windows desktop application
+ with:
+Excel file upload 
+Google Sheet/Excel import 
+Automatic detection of WT and MT exams 
+Class selection 
+Student selection 
+Exam selection 
+Automatic average calculation 
+Progress report preview 
+Graph generation 
+School logo upload 
+Print report 
+Export as PDF 
+Export as image 
+Batch report generation for the entire class

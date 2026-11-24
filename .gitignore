@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-app/
+release/
+Run/
+*.exe
+.vite/
+.kilo/
+*.log
+.DS_Store
+Thumbs.db
