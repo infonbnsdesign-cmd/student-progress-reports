@@ -254,6 +254,55 @@ function calcTotalAverages(rows, includeInAverage = true) {
   return { totalObtained, totalMax };
 }
 
+function getExamPrefixInfo(examName) {
+  const upper = (examName || '').toString().toUpperCase().replace(/\./g, '').trim();
+  if (upper.startsWith('RT') || upper.includes('REVISION')) {
+    return { key: 'RT', title: 'Revision Test Report', titleClass: 'rt-title' };
+  }
+  if (upper.startsWith('CT') || upper.includes('CYCLE')) {
+    return { key: 'CT', title: 'Cycle Test Report', titleClass: 'ct-title' };
+  }
+  if (upper.startsWith('UT') || upper.includes('UNIT')) {
+    return { key: 'UT', title: 'Unit Test Report', titleClass: 'ut-title' };
+  }
+  if (upper.startsWith('PT') || upper.includes('PERIODIC')) {
+    return { key: 'PT', title: 'Periodic Test Report', titleClass: 'pt-title' };
+  }
+  if (upper.startsWith('CPT') || upper.includes('CHAPTER')) {
+    return { key: 'CPT', title: 'Chapterwise Test Report', titleClass: 'cpt-title' };
+  }
+  if (upper.startsWith('SPT') || upper.includes('SUBJECT')) {
+    return { key: 'SPT', title: 'Subjectwise Test Report', titleClass: 'spt-title' };
+  }
+  if (upper.startsWith('WPT') || upper.startsWith('WT') || upper.includes('WEEKLY')) {
+    return { key: 'WT', title: 'Weekly Test Report', titleClass: 'wt-title' };
+  }
+  if (upper.startsWith('MT') || upper.includes('MONTHLY') || upper.includes('MIDTERM') || upper.includes('TERM')) {
+    return { key: 'MT', title: 'Monthly Test Report', titleClass: 'mt-title' };
+  }
+  const match = upper.match(/^([A-Z\s]+?)(?:[-_\d]|$)/);
+  if (match && match[1].trim().length >= 2) {
+    const rawPrefix = match[1].trim();
+    return { key: rawPrefix, title: `${rawPrefix} Test Report`, titleClass: 'ot-title' };
+  }
+  return { key: 'OTHER', title: 'Test Report', titleClass: 'ot-title' };
+}
+
+function groupExamsByPrefix(examList) {
+  const groups = [];
+  const map = new Map();
+  (examList || []).forEach(exam => {
+    const info = getExamPrefixInfo(exam);
+    if (!map.has(info.key)) {
+      const g = { key: info.key, title: info.title, titleClass: info.titleClass, exams: [] };
+      map.set(info.key, g);
+      groups.push(g);
+    }
+    map.get(info.key).exams.push(exam);
+  });
+  return groups;
+}
+
 function ExamTableSection({ title, titleClass, selectedExams, rows, colStats, totalAvg, totalAvgMax, maxPerSubject, passMark, exams, subjects, totalMax, showMaxColumn, hideMeta, showAverage = true, avgExams = [] }) {
   const formatMark = (val) => (val === null || val === undefined ? "AB" : Math.round(val));
   const formatPercentage = (val) => (val === null || val === undefined ? "-" : `${Math.round(val)}%`);
@@ -390,45 +439,55 @@ export default function ReportCard({
   const wtMaxPerSubject = Math.round(wtTotalMax / subjects.length);
   const wtPassMark = Math.round(wtMaxPerSubject * 0.4);
 
-  let cptRows, cptColStats, cptAvg, cptTotalMax, cptMaxPerSubject, cptPassMark, cptAvgExams;
-  let sptRows, sptColStats, sptAvg, sptMaxPerSubject, sptPassMark, sptAvgExams;
-  let mtRows, mtColStats, mtAvg, mtMaxPerSubject, mtPassMark, mtAvgExams;
+  // --- CPT CALCULATIONS (available for all classes) ---
+  const cptAvgExams = getAvgExamsForSection(selectedCpts, avgExamMode, selectedAvgExams);
+  const cptRows = buildExamRows(subjects, exams, selectedCpts, student.marks, cptAvgExams);
+  const cptColStats = buildColStats(subjects, exams, selectedCpts, student.marks);
+  const cptAvg = calcTotalAverages(cptRows, showExamsWithoutAveraging);
+  const cptTotalMax = isNeet ? 720 : (selectedCpts.length > 0 ? subjects.reduce((sum, sub) => sum + (exams[selectedCpts[0]]?.subjects[sub] || 25), 0) : 25 * subjects.length);
+  const cptMaxPerSubject = Math.round(cptTotalMax / subjects.length);
+  const cptPassMark = Math.round(cptMaxPerSubject * 0.4);
 
-  if (is12neetjee) {
-    // --- CPT CALCULATIONS ---
-    cptAvgExams = getAvgExamsForSection(selectedCpts, avgExamMode, selectedAvgExams);
-    cptRows = buildExamRows(subjects, exams, selectedCpts, student.marks, cptAvgExams);
-    cptColStats = buildColStats(subjects, exams, selectedCpts, student.marks);
-    cptAvg = calcTotalAverages(cptRows, showExamsWithoutAveraging);
-    cptTotalMax = isNeet ? 720 : (selectedCpts.length > 0 ? subjects.reduce((sum, sub) => sum + (exams[selectedCpts[0]]?.subjects[sub] || 25), 0) : 25 * subjects.length);
-    cptMaxPerSubject = Math.round(cptTotalMax / subjects.length);
-    cptPassMark = Math.round(cptMaxPerSubject * 0.4);
+  // --- SPT CALCULATIONS (available for all classes) ---
+  const sptAvgExams = getAvgExamsForSection(selectedSpts, avgExamMode, selectedAvgExams);
+  const sptRows = buildExamRows(subjects, exams, selectedSpts, student.marks, sptAvgExams);
+  const sptColStats = buildColStats(subjects, exams, selectedSpts, student.marks);
+  const sptAvg = calcTotalAverages(sptRows, showExamsWithoutAveraging);
+  const sptMaxPerSubject = selectedSpts.length > 0 ? (exams[selectedSpts[0]]?.subjects[subjects[0]] || 50) : 50;
+  const sptPassMark = Math.round(sptMaxPerSubject * 0.4);
 
-    // --- SPT CALCULATIONS ---
-    sptAvgExams = getAvgExamsForSection(selectedSpts, avgExamMode, selectedAvgExams);
-    sptRows = buildExamRows(subjects, exams, selectedSpts, student.marks, sptAvgExams);
-    sptColStats = buildColStats(subjects, exams, selectedSpts, student.marks);
-    sptAvg = calcTotalAverages(sptRows, showExamsWithoutAveraging);
-    sptMaxPerSubject = selectedSpts.length > 0 ? (exams[selectedSpts[0]]?.subjects[subjects[0]] || 50) : 50;
-    sptPassMark = Math.round(sptMaxPerSubject * 0.4);
-  } else {
-    // --- MT CALCULATIONS ---
-    mtAvgExams = getAvgExamsForSection(selectedMts, avgExamMode, selectedAvgExams);
-    mtRows = buildExamRows(subjects, exams, selectedMts, student.marks, mtAvgExams);
-    mtColStats = buildColStats(subjects, exams, selectedMts, student.marks);
-    mtAvg = calcTotalAverages(mtRows, showExamsWithoutAveraging);
-    mtMaxPerSubject = selectedMts.length > 0 ? (exams[selectedMts[0]]?.subjects[subjects[0]] || 50) : 50;
-    mtPassMark = Math.round(mtMaxPerSubject * 0.4);
-  }
+  // --- MT CALCULATIONS (available for all classes) ---
+  const mtAvgExams = getAvgExamsForSection(selectedMts, avgExamMode, selectedAvgExams);
+  const mtRows = buildExamRows(subjects, exams, selectedMts, student.marks, mtAvgExams);
+  const mtColStats = buildColStats(subjects, exams, selectedMts, student.marks);
+  const mtAvg = calcTotalAverages(mtRows, showExamsWithoutAveraging);
+  const mtMaxPerSubject = selectedMts.length > 0 ? (exams[selectedMts[0]]?.subjects[subjects[0]] || 50) : 50;
+  const mtPassMark = Math.round(mtMaxPerSubject * 0.4);
 
-  // --- OTHER/CUSTOM TEST CALCULATIONS (apply to any class) ---
-  const otAvgExams = getAvgExamsForSection(selectedOthers, avgExamMode, selectedAvgExams);
-  const otRows = buildExamRows(subjects, exams, selectedOthers, student.marks, otAvgExams);
-  const otColStats = buildColStats(subjects, exams, selectedOthers, student.marks);
-  const otAvg = calcTotalAverages(otRows, showExamsWithoutAveraging);
-  const otTotalMax = selectedOthers.length > 0 ? subjects.reduce((sum, sub) => sum + (exams[selectedOthers[0]]?.subjects[sub] || 100), 0) : 100 * subjects.length;
-  const otMaxPerSubject = Math.round(otTotalMax / subjects.length);
-  const otPassMark = Math.round(otMaxPerSubject * 0.4);
+  // --- OTHER/CUSTOM TEST GROUPS CALCULATIONS (split exam-wise for all classes) ---
+  const otherGroups = groupExamsByPrefix(selectedOthers).map(group => {
+    const groupAvgExams = getAvgExamsForSection(group.exams, avgExamMode, selectedAvgExams);
+    const groupRows = buildExamRows(subjects, exams, group.exams, student.marks, groupAvgExams);
+    const groupColStats = buildColStats(subjects, exams, group.exams, student.marks);
+    const groupAvg = calcTotalAverages(groupRows, showExamsWithoutAveraging);
+    const groupTotalMax = group.exams.length > 0 ? subjects.reduce((sum, sub) => sum + (exams[group.exams[0]]?.subjects[sub] || 100), 0) : 100 * subjects.length;
+    const groupMaxPerSubject = Math.round(groupTotalMax / subjects.length);
+    const groupPassMark = Math.round(groupMaxPerSubject * 0.4);
+    return {
+      key: group.key,
+      title: group.title,
+      titleClass: group.titleClass,
+      selectedExams: group.exams,
+      rows: groupRows,
+      colStats: groupColStats,
+      totalAvg: groupAvg.totalObtained,
+      totalAvgMax: groupAvg.totalMax,
+      totalMax: groupTotalMax,
+      maxPerSubject: groupMaxPerSubject,
+      passMark: groupPassMark,
+      avgExams: groupAvgExams
+    };
+  });
 
   // --- DETERMINE PERFORMANCE GRAPH DATA ---
   let graphExams = [];
@@ -455,36 +514,22 @@ export default function ReportCard({
   } else if (graphExamType === 'NONE') {
     graphExams = [];
   } else {
-    // AUTO selection fallback:
-    if (is12neetjee) {
-      if (selectedSpts.length > 0) {
-        graphExams = selectedSpts.filter(e => exams[e]?.type === 'SPT');
-        graphTitle = 'Subject-Wise Mark Analysis (SPT)';
-      } else if (selectedCpts.length > 0) {
-        graphExams = selectedCpts.filter(e => exams[e]?.type === 'CPT');
-        graphTitle = 'Subject-Wise Mark Analysis (CPT)';
-      } else if (selectedWts.length > 0) {
-        graphExams = selectedWts.filter(e => exams[e]?.type === 'WT');
-        graphTitle = 'Subject-Wise Mark Analysis (WT)';
-      } else if (selectedOthers.length > 0) {
-        graphExams = selectedOthers;
-        graphTitle = 'Subject-Wise Mark Analysis';
-      }
-    } else if (is11NeetOrJee) {
-      graphExams = selectedWts.filter(e => exams[e]?.type === 'WT');
+    // AUTO selection fallback (works for all classes):
+    if (selectedSpts.length > 0) {
+      graphExams = selectedSpts.filter(e => exams[e]?.type === 'SPT' || exams[e]);
+      graphTitle = 'Subject-Wise Mark Analysis (SPT)';
+    } else if (selectedCpts.length > 0) {
+      graphExams = selectedCpts.filter(e => exams[e]?.type === 'CPT' || exams[e]);
+      graphTitle = 'Subject-Wise Mark Analysis (CPT)';
+    } else if (selectedMts.length > 0) {
+      graphExams = selectedMts.filter(e => exams[e]?.type === 'MT' || exams[e]);
+      graphTitle = 'Subject-Wise Mark Analysis (MT)';
+    } else if (selectedWts.length > 0) {
+      graphExams = selectedWts.filter(e => exams[e]?.type === 'WT' || exams[e]);
       graphTitle = 'Subject-Wise Mark Analysis (WT)';
-    } else {
-      const mtExams = selectedMts.filter(e => exams[e]?.type === 'MT');
-      const wtExams = selectedWts.filter(e => exams[e]?.type === 'WT');
-      if (mtExams.length > 0) {
-        graphExams = selectedMts;
-      } else if (wtExams.length > 0) {
-        graphExams = selectedWts;
-        graphTitle = 'Subject-Wise Mark Analysis (WT)';
-      } else if (selectedOthers.length > 0) {
-        graphExams = selectedOthers;
-        graphTitle = 'Subject-Wise Mark Analysis';
-      }
+    } else if (selectedOthers.length > 0) {
+      graphExams = selectedOthers;
+      graphTitle = 'Subject-Wise Mark Analysis';
     }
   }
 
@@ -552,7 +597,7 @@ export default function ReportCard({
             />
           );
         }
-        if (secKey === 'CPT' && is12neetjee && selectedCpts.length > 0) {
+        if (secKey === 'CPT' && selectedCpts.length > 0) {
           return (
             <ExamTableSection
               key="CPT"
@@ -575,7 +620,7 @@ export default function ReportCard({
             />
           );
         }
-        if (secKey === 'SPT' && is12neetjee && selectedSpts.length > 0) {
+        if (secKey === 'SPT' && selectedSpts.length > 0) {
           return (
             <ExamTableSection
               key="SPT"
@@ -597,29 +642,7 @@ export default function ReportCard({
             />
           );
         }
-        if (secKey === 'OTHER' && selectedOthers.length > 0) {
-          return (
-            <ExamTableSection
-              key="OTHER"
-              title="Test Report"
-              titleClass="ot-title"
-              selectedExams={selectedOthers}
-              rows={otRows}
-              colStats={otColStats}
-              totalAvg={otAvg.totalObtained}
-              totalAvgMax={otAvg.totalMax}
-              maxPerSubject={otMaxPerSubject}
-              passMark={otPassMark}
-              exams={exams}
-              subjects={subjects}
-              totalMax={otTotalMax}
-              showMaxColumn={false}
-              showAverage={showAvgColumn}
-              avgExams={otAvgExams}
-            />
-          );
-        }
-        if (secKey === 'MT' && !is12neetjee && selectedMts.length > 0) {
+        if (secKey === 'MT' && selectedMts.length > 0) {
           return (
             <ExamTableSection
               key="MT"
@@ -640,6 +663,32 @@ export default function ReportCard({
               showAverage={showAvgColumn}
               avgExams={mtAvgExams}
             />
+          );
+        }
+        if (secKey === 'OTHER' && otherGroups.length > 0) {
+          return (
+            <React.Fragment key="OTHER">
+              {otherGroups.map(og => (
+                <ExamTableSection
+                  key={og.key}
+                  title={og.title}
+                  titleClass={og.titleClass}
+                  selectedExams={og.selectedExams}
+                  rows={og.rows}
+                  colStats={og.colStats}
+                  totalAvg={og.totalAvg}
+                  totalAvgMax={og.totalAvgMax}
+                  maxPerSubject={og.maxPerSubject}
+                  passMark={og.passMark}
+                  exams={exams}
+                  subjects={subjects}
+                  totalMax={og.totalMax}
+                  showMaxColumn={false}
+                  showAverage={showAvgColumn}
+                  avgExams={og.avgExams}
+                />
+              ))}
+            </React.Fragment>
           );
         }
         return null;

@@ -740,6 +740,10 @@ button, input, select, textarea {
 .mt-title  { background: #ecfdf5; color: #065f46; border-left: 4px solid #10b981; }
 .cpt-title { background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; }
 .spt-title { background: #fce7f3; color: #9d174d; border-left: 4px solid #ec4899; }
+.rt-title  { background: #ccfbf1; color: #115e59; border-left: 4px solid #0d9488; }
+.ct-title  { background: #e0e7ff; color: #3730a3; border-left: 4px solid #4f46e5; }
+.ut-title  { background: #d1fae5; color: #065f46; border-left: 4px solid #059669; }
+.pt-title  { background: #fef9c3; color: #854d0e; border-left: 4px solid #ca8a04; }
 .ot-title  { background: #eef2ff; color: #3730a3; border-left: 4px solid #6366f1; }
 .graph-title { background: #eff6ff; color: #1d4ed8; border-left: 4px solid #3b82f6; }
 
