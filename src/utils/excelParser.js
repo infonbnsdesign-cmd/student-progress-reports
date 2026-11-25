@@ -22,17 +22,32 @@ export function normalizeExamName(name) {
     upperNoDots.includes('MID TERM') || 
     upperNoDots.includes('MID') || 
     upperNoDots.includes('TERMINAL') || 
-    upperNoDots.includes('HALF YEARLY')
+    upperNoDots.includes('HALF YEARLY') ||
+    upperNoDots.includes('QUARTERLY') ||
+    upperNoDots.includes('ANNUAL')
   ) {
     type = 'MT';
   } else if (upperNoDots.includes('CPT') || upperNoDots.includes('CHAPTER')) {
     type = 'CPT';
   } else if (upperNoDots.includes('SPT') || upperNoDots.includes('SUBJECT')) {
     type = 'SPT';
+  } else if (upperNoDots.includes('RT') || upperNoDots.includes('REVISION')) {
+    type = 'RT';
+  } else if (upperNoDots.includes('CT') || upperNoDots.includes('CYCLE')) {
+    type = 'CT';
+  } else if (upperNoDots.includes('UT') || upperNoDots.includes('UNIT')) {
+    type = 'UT';
+  } else if (upperNoDots.includes('PT') || upperNoDots.includes('PERIODIC')) {
+    type = 'PT';
   } else if (upperNoDots.includes('TERM')) {
     type = 'MT';
   } else {
-    type = 'OTHER';
+    const prefixMatch = upperNoDots.match(/^([A-Z]+)/);
+    if (prefixMatch && prefixMatch[1].length >= 2) {
+      type = prefixMatch[1];
+    } else {
+      type = 'OTHER';
+    }
   }
   
   // Extract number or Roman numeral — work on the dot-free version
@@ -41,6 +56,10 @@ export function normalizeExamName(name) {
     .replace('MONTHLY TEST', '')
     .replace('MID TERM TEST', '')
     .replace('MIDTERM TEST', '')
+    .replace('REVISION TEST', '')
+    .replace('CYCLE TEST', '')
+    .replace('UNIT TEST', '')
+    .replace('PERIODIC TEST', '')
     .replace('WEEKLY', '')
     .replace('MONTHLY', '')
     .replace('MID TERM', '')
@@ -48,11 +67,21 @@ export function normalizeExamName(name) {
     .replace('MID', '')
     .replace('HALF YEARLY', '')
     .replace('TERMINAL', '')
+    .replace('QUARTERLY', '')
+    .replace('ANNUAL', '')
+    .replace('REVISION', '')
+    .replace('CYCLE', '')
+    .replace('UNIT', '')
+    .replace('PERIODIC', '')
     .replace('WPT', '')
     .replace('WT', '')
     .replace('MT', '')
     .replace('CPT', '')
     .replace('SPT', '')
+    .replace('RT', '')
+    .replace('CT', '')
+    .replace('UT', '')
+    .replace('PT', '')
     .replace('CHAPTER', '')
     .replace('SUBJECT', '')
     .replace('TEST', '')
@@ -82,6 +111,28 @@ export function normalizeExamName(name) {
   
   if (type === 'OTHER') return { type, name: original, number: 0 };
   return { type, name: original, number: 1 };
+}
+
+/**
+ * Returns human-readable label and report title info for an exam type.
+ */
+export function getExamTypeLabel(type) {
+  switch (type) {
+    case 'WT': return { label: 'Weekly Tests', tableTitle: 'Weekly Tests Table', reportTitle: 'Weekly Test Report', badgeClass: 'wt-title' };
+    case 'MT': return { label: 'Monthly Tests', tableTitle: 'Monthly Tests Table', reportTitle: 'Monthly Test Report', badgeClass: 'mt-title' };
+    case 'CPT': return { label: 'Chapterwise Tests', tableTitle: 'Chapterwise Tests Table', reportTitle: 'Chapterwise Test Report', badgeClass: 'cpt-title' };
+    case 'SPT': return { label: 'Subjectwise Tests', tableTitle: 'Subjectwise Tests Table', reportTitle: 'Subjectwise Test Report', badgeClass: 'spt-title' };
+    case 'RT': return { label: 'Revision Tests', tableTitle: 'Revision Tests Table', reportTitle: 'Revision Test Report', badgeClass: 'rt-title' };
+    case 'CT': return { label: 'Cycle Tests', tableTitle: 'Cycle Tests Table', reportTitle: 'Cycle Test Report', badgeClass: 'ct-title' };
+    case 'UT': return { label: 'Unit Tests', tableTitle: 'Unit Tests Table', reportTitle: 'Unit Test Report', badgeClass: 'ut-title' };
+    case 'PT': return { label: 'Periodic Tests', tableTitle: 'Periodic Tests Table', reportTitle: 'Periodic Test Report', badgeClass: 'pt-title' };
+    default: return { 
+      label: type === 'OTHER' ? 'Tests' : `${type} Tests`, 
+      tableTitle: type === 'OTHER' ? 'Tests Table' : `${type} Tests Table`, 
+      reportTitle: type === 'OTHER' ? 'Test Report' : `${type} Test Report`, 
+      badgeClass: 'ot-title' 
+    };
+  }
 }
 
 /**

@@ -1,5 +1,6 @@
 import React from 'react';
 import PerformanceChart from './PerformanceChart';
+import { getExamTypeLabel } from '../utils/excelParser';
 
 /**
  * Maps every possible subject name (full name, abbreviation, or variant)
@@ -398,11 +399,12 @@ function ExamTableSection({ title, titleClass, selectedExams, rows, colStats, to
 export default function ReportCard({
   student,
   classData,
-  selectedWts,
-  selectedMts,
-  selectedCpts,
-  selectedSpts,
-  selectedOthers,
+  selectedWts = [],
+  selectedMts = [],
+  selectedCpts = [],
+  selectedSpts = [],
+  selectedOthers = [],
+  selectedExamsByType = null,
   graphExamType = 'AUTO',
   selectedGraphExams = [],
   avgExamMode = 'AUTO',
@@ -430,106 +432,51 @@ export default function ReportCard({
   // --- Show/hide average column ---
   const showAvgColumn = avgExamMode !== 'NONE';
 
-  // --- WT CALCULATIONS ---
-  const wtAvgExams = getAvgExamsForSection(selectedWts, avgExamMode, selectedAvgExams);
-  const wtRows = buildExamRows(subjects, exams, selectedWts, student.marks, wtAvgExams);
-  const wtColStats = buildColStats(subjects, exams, selectedWts, student.marks);
-  const wtAvg = calcTotalAverages(wtRows, showExamsWithoutAveraging);
-  const wtTotalMax = isNeet ? 720 : (selectedWts.length > 0 ? subjects.reduce((sum, sub) => sum + (exams[selectedWts[0]]?.subjects[sub] || 25), 0) : 25 * subjects.length);
-  const wtMaxPerSubject = Math.round(wtTotalMax / subjects.length);
-  const wtPassMark = Math.round(wtMaxPerSubject * 0.4);
-
-  // --- CPT CALCULATIONS (available for all classes) ---
-  const cptAvgExams = getAvgExamsForSection(selectedCpts, avgExamMode, selectedAvgExams);
-  const cptRows = buildExamRows(subjects, exams, selectedCpts, student.marks, cptAvgExams);
-  const cptColStats = buildColStats(subjects, exams, selectedCpts, student.marks);
-  const cptAvg = calcTotalAverages(cptRows, showExamsWithoutAveraging);
-  const cptTotalMax = isNeet ? 720 : (selectedCpts.length > 0 ? subjects.reduce((sum, sub) => sum + (exams[selectedCpts[0]]?.subjects[sub] || 25), 0) : 25 * subjects.length);
-  const cptMaxPerSubject = Math.round(cptTotalMax / subjects.length);
-  const cptPassMark = Math.round(cptMaxPerSubject * 0.4);
-
-  // --- SPT CALCULATIONS (available for all classes) ---
-  const sptAvgExams = getAvgExamsForSection(selectedSpts, avgExamMode, selectedAvgExams);
-  const sptRows = buildExamRows(subjects, exams, selectedSpts, student.marks, sptAvgExams);
-  const sptColStats = buildColStats(subjects, exams, selectedSpts, student.marks);
-  const sptAvg = calcTotalAverages(sptRows, showExamsWithoutAveraging);
-  const sptMaxPerSubject = selectedSpts.length > 0 ? (exams[selectedSpts[0]]?.subjects[subjects[0]] || 50) : 50;
-  const sptPassMark = Math.round(sptMaxPerSubject * 0.4);
-
-  // --- MT CALCULATIONS (available for all classes) ---
-  const mtAvgExams = getAvgExamsForSection(selectedMts, avgExamMode, selectedAvgExams);
-  const mtRows = buildExamRows(subjects, exams, selectedMts, student.marks, mtAvgExams);
-  const mtColStats = buildColStats(subjects, exams, selectedMts, student.marks);
-  const mtAvg = calcTotalAverages(mtRows, showExamsWithoutAveraging);
-  const mtMaxPerSubject = selectedMts.length > 0 ? (exams[selectedMts[0]]?.subjects[subjects[0]] || 50) : 50;
-  const mtPassMark = Math.round(mtMaxPerSubject * 0.4);
-
-  // --- OTHER/CUSTOM TEST GROUPS CALCULATIONS (split exam-wise for all classes) ---
-  const otherGroups = groupExamsByPrefix(selectedOthers).map(group => {
-    const groupAvgExams = getAvgExamsForSection(group.exams, avgExamMode, selectedAvgExams);
-    const groupRows = buildExamRows(subjects, exams, group.exams, student.marks, groupAvgExams);
-    const groupColStats = buildColStats(subjects, exams, group.exams, student.marks);
-    const groupAvg = calcTotalAverages(groupRows, showExamsWithoutAveraging);
-    const groupTotalMax = group.exams.length > 0 ? subjects.reduce((sum, sub) => sum + (exams[group.exams[0]]?.subjects[sub] || 100), 0) : 100 * subjects.length;
-    const groupMaxPerSubject = Math.round(groupTotalMax / subjects.length);
-    const groupPassMark = Math.round(groupMaxPerSubject * 0.4);
-    return {
-      key: group.key,
-      title: group.title,
-      titleClass: group.titleClass,
-      selectedExams: group.exams,
-      rows: groupRows,
-      colStats: groupColStats,
-      totalAvg: groupAvg.totalObtained,
-      totalAvgMax: groupAvg.totalMax,
-      totalMax: groupTotalMax,
-      maxPerSubject: groupMaxPerSubject,
-      passMark: groupPassMark,
-      avgExams: groupAvgExams
-    };
-  });
+  // Helper to retrieve selected exams for any type
+  const getExamsForType = (typeKey) => {
+    if (selectedExamsByType && selectedExamsByType[typeKey] !== undefined) {
+      return selectedExamsByType[typeKey] || [];
+    }
+    if (typeKey === 'WT') return selectedWts || [];
+    if (typeKey === 'MT') return selectedMts || [];
+    if (typeKey === 'CPT') return selectedCpts || [];
+    if (typeKey === 'SPT') return selectedSpts || [];
+    if (typeKey === 'OTHER') return selectedOthers || [];
+    return [];
+  };
 
   // --- DETERMINE PERFORMANCE GRAPH DATA ---
   let graphExams = [];
   let graphTitle = 'Subject-Wise Mark Analysis';
 
-  if (graphExamType === 'SPT') {
-    graphExams = selectedSpts.filter(e => exams[e]);
-    graphTitle = 'Subject-Wise Mark Analysis (SPT)';
-  } else if (graphExamType === 'CPT') {
-    graphExams = selectedCpts.filter(e => exams[e]);
-    graphTitle = 'Subject-Wise Mark Analysis (CPT)';
-  } else if (graphExamType === 'WT') {
-    graphExams = selectedWts.filter(e => exams[e]);
-    graphTitle = 'Subject-Wise Mark Analysis (WT)';
-  } else if (graphExamType === 'MT') {
-    graphExams = selectedMts.filter(e => exams[e]);
-    graphTitle = 'Subject-Wise Mark Analysis (MT)';
-  } else if (graphExamType === 'OTHER') {
-    graphExams = selectedOthers.filter(e => exams[e]);
-    graphTitle = 'Subject-Wise Mark Analysis';
+  if (graphExamType === 'NONE') {
+    graphExams = [];
   } else if (graphExamType === 'CUSTOM') {
     graphExams = (selectedGraphExams || []).filter(e => exams[e]);
     graphTitle = 'Subject-Wise Mark Analysis';
-  } else if (graphExamType === 'NONE') {
-    graphExams = [];
+  } else if (graphExamType !== 'AUTO') {
+    const list = getExamsForType(graphExamType);
+    graphExams = list.filter(e => exams[e]);
+    const labelInfo = getExamTypeLabel(graphExamType);
+    graphTitle = `Subject-Wise Mark Analysis (${labelInfo.label || graphExamType})`;
   } else {
-    // AUTO selection fallback (works for all classes):
-    if (selectedSpts.length > 0) {
-      graphExams = selectedSpts.filter(e => exams[e]?.type === 'SPT' || exams[e]);
-      graphTitle = 'Subject-Wise Mark Analysis (SPT)';
-    } else if (selectedCpts.length > 0) {
-      graphExams = selectedCpts.filter(e => exams[e]?.type === 'CPT' || exams[e]);
-      graphTitle = 'Subject-Wise Mark Analysis (CPT)';
-    } else if (selectedMts.length > 0) {
-      graphExams = selectedMts.filter(e => exams[e]?.type === 'MT' || exams[e]);
-      graphTitle = 'Subject-Wise Mark Analysis (MT)';
-    } else if (selectedWts.length > 0) {
-      graphExams = selectedWts.filter(e => exams[e]?.type === 'WT' || exams[e]);
-      graphTitle = 'Subject-Wise Mark Analysis (WT)';
-    } else if (selectedOthers.length > 0) {
-      graphExams = selectedOthers;
-      graphTitle = 'Subject-Wise Mark Analysis';
+    // AUTO: pick from sectionOrder (first section that has selected exams)
+    let chosenType = null;
+    let chosenExams = [];
+    for (const sec of sectionOrder) {
+      const list = getExamsForType(sec);
+      if (list && list.length > 0) {
+        chosenType = sec;
+        chosenExams = list.filter(e => exams[e]);
+        break;
+      }
+    }
+    if (chosenExams.length > 0) {
+      graphExams = chosenExams;
+      const labelInfo = getExamTypeLabel(chosenType);
+      graphTitle = `Subject-Wise Mark Analysis (${labelInfo.label || chosenType})`;
+    } else {
+      graphExams = [];
     }
   }
 
@@ -574,124 +521,52 @@ export default function ReportCard({
 
       {/* ── TEST REPORT TABLES (Ordered by sectionOrder) ── */}
       {sectionOrder.map(secKey => {
-        if (secKey === 'WT' && selectedWts.length > 0) {
-          return (
-            <ExamTableSection
-              key="WT"
-              title="Weekly Test Report"
-              titleClass="wt-title"
-              selectedExams={selectedWts}
-              rows={wtRows}
-              colStats={wtColStats}
-              totalAvg={wtAvg.totalObtained}
-              totalAvgMax={wtAvg.totalMax}
-              maxPerSubject={wtMaxPerSubject}
-              passMark={wtPassMark}
-              exams={exams}
-              subjects={subjects}
-              totalMax={wtTotalMax}
-              showMaxColumn={showMax}
-              hideMeta={isTargetClass}
-              showAverage={showAvgColumn}
-              avgExams={wtAvgExams}
-            />
-          );
+        const secExams = getExamsForType(secKey);
+        if (!secExams || secExams.length === 0) return null;
+
+        const secAvgExams = getAvgExamsForSection(secExams, avgExamMode, selectedAvgExams);
+        const secRows = buildExamRows(subjects, exams, secExams, student.marks, secAvgExams);
+        const secColStats = buildColStats(subjects, exams, secExams, student.marks);
+        const secAvg = calcTotalAverages(secRows, showExamsWithoutAveraging);
+
+        const firstExamMeta = exams[secExams[0]];
+        let secTotalMax;
+        if (isNeet && (secKey === 'WT' || secKey === 'CPT' || secKey === 'RT')) {
+          const sumSubjectMax = subjects.reduce((sum, sub) => sum + (firstExamMeta?.subjects[sub] || 0), 0);
+          secTotalMax = sumSubjectMax > 0 ? sumSubjectMax : 720;
+        } else if (firstExamMeta?.subjects) {
+          secTotalMax = subjects.reduce((sum, sub) => sum + (firstExamMeta.subjects[sub] || (secKey === 'WT' ? 25 : (secKey === 'MT' ? 50 : 100))), 0);
+        } else {
+          const defaultMax = secKey === 'WT' ? 25 : (secKey === 'MT' ? 50 : 100);
+          secTotalMax = subjects.length * defaultMax;
         }
-        if (secKey === 'CPT' && selectedCpts.length > 0) {
-          return (
-            <ExamTableSection
-              key="CPT"
-              title="Chapterwise Test Report"
-              titleClass="cpt-title"
-              selectedExams={selectedCpts}
-              rows={cptRows}
-              colStats={cptColStats}
-              totalAvg={cptAvg.totalObtained}
-              totalAvgMax={cptAvg.totalMax}
-              maxPerSubject={cptMaxPerSubject}
-              passMark={cptPassMark}
-              exams={exams}
-              subjects={subjects}
-              totalMax={cptTotalMax}
-              showMaxColumn={showMax}
-              hideMeta={isTargetClass}
-              showAverage={showAvgColumn}
-              avgExams={cptAvgExams}
-            />
-          );
-        }
-        if (secKey === 'SPT' && selectedSpts.length > 0) {
-          return (
-            <ExamTableSection
-              key="SPT"
-              title="Subjectwise Test Report"
-              titleClass="spt-title"
-              selectedExams={selectedSpts}
-              rows={sptRows}
-              colStats={sptColStats}
-              totalAvg={sptAvg.totalObtained}
-              totalAvgMax={sptAvg.totalMax}
-              maxPerSubject={sptMaxPerSubject}
-              passMark={sptPassMark}
-              exams={exams}
-              subjects={subjects}
-              showMaxColumn={showMax}
-              hideMeta={isTargetClass}
-              showAverage={showAvgColumn}
-              avgExams={sptAvgExams}
-            />
-          );
-        }
-        if (secKey === 'MT' && selectedMts.length > 0) {
-          return (
-            <ExamTableSection
-              key="MT"
-              title="Monthly Test Report"
-              titleClass="mt-title"
-              selectedExams={selectedMts}
-              rows={mtRows}
-              colStats={mtColStats}
-              totalAvg={mtAvg.totalObtained}
-              totalAvgMax={mtAvg.totalMax}
-              maxPerSubject={mtMaxPerSubject}
-              passMark={mtPassMark}
-              exams={exams}
-              subjects={subjects}
-              totalMax={subjects.length * mtMaxPerSubject}
-              showMaxColumn={false}
-              hideMeta={isTargetClass}
-              showAverage={showAvgColumn}
-              avgExams={mtAvgExams}
-            />
-          );
-        }
-        if (secKey === 'OTHER' && otherGroups.length > 0) {
-          return (
-            <React.Fragment key="OTHER">
-              {otherGroups.map(og => (
-                <ExamTableSection
-                  key={og.key}
-                  title={og.title}
-                  titleClass={og.titleClass}
-                  selectedExams={og.selectedExams}
-                  rows={og.rows}
-                  colStats={og.colStats}
-                  totalAvg={og.totalAvg}
-                  totalAvgMax={og.totalAvgMax}
-                  maxPerSubject={og.maxPerSubject}
-                  passMark={og.passMark}
-                  exams={exams}
-                  subjects={subjects}
-                  totalMax={og.totalMax}
-                  showMaxColumn={false}
-                  showAverage={showAvgColumn}
-                  avgExams={og.avgExams}
-                />
-              ))}
-            </React.Fragment>
-          );
-        }
-        return null;
+
+        const secMaxPerSubject = Math.round(secTotalMax / subjects.length);
+        const secPassMark = Math.round(secMaxPerSubject * 0.4);
+        const typeInfo = getExamTypeLabel(secKey);
+        const showMaxCol = showMax || (firstExamMeta && subjects.some(s => firstExamMeta.subjects[s] !== firstExamMeta.subjects[subjects[0]]));
+
+        return (
+          <ExamTableSection
+            key={secKey}
+            title={typeInfo.reportTitle}
+            titleClass={typeInfo.badgeClass}
+            selectedExams={secExams}
+            rows={secRows}
+            colStats={secColStats}
+            totalAvg={secAvg.totalObtained}
+            totalAvgMax={secAvg.totalMax}
+            maxPerSubject={secMaxPerSubject}
+            passMark={secPassMark}
+            exams={exams}
+            subjects={subjects}
+            totalMax={secTotalMax}
+            showMaxColumn={showMaxCol}
+            hideMeta={isTargetClass}
+            showAverage={showAvgColumn}
+            avgExams={secAvgExams}
+          />
+        );
       })}
 
       {/* ── MARK LEGEND (shown when any mark table is visible) ── */}

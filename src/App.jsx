@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import * as XLSX from 'xlsx';
-import { parseExcelWorkbook } from './utils/excelParser';
+import { parseExcelWorkbook, getExamTypeLabel } from './utils/excelParser';
 import { downloadSampleExcel } from './utils/sampleData';
 import ReportCard from './components/ReportCard';
 import ClassConsolidatedReport from './components/ClassConsolidatedReport';
@@ -120,13 +120,14 @@ export default function App() {
   const [selectedCpts, setSelectedCpts] = useState([]);
   const [selectedSpts, setSelectedSpts] = useState([]);
   const [selectedOthers, setSelectedOthers] = useState([]);
+  const [selectedExamsByType, setSelectedExamsByType] = useState({});
   const [showExamsWithoutAveraging, setShowExamsWithoutAveraging] = useState(false);
   const [consolidatedExams, setConsolidatedExams] = useState(['', '', '', '', '', '']); // R-1 to R-6
   const [graphExamType, setGraphExamType] = useState('AUTO');
   const [selectedGraphExams, setSelectedGraphExams] = useState([]);
   const [avgExamMode, setAvgExamMode] = useState('AUTO');
   const [selectedAvgExams, setSelectedAvgExams] = useState([]);
-  const [sectionOrder, setSectionOrder] = useState(['WT', 'MT', 'CPT', 'SPT', 'OTHER']);
+  const [sectionOrder, setSectionOrder] = useState([]);
   const [logoUrl, setLogoUrl] = useState(defaultLogo);
   const [schoolName, setSchoolName] = useState('Nava Bharath National School');
   const [academicYear, setAcademicYear] = useState('2026-27');
@@ -211,24 +212,20 @@ export default function App() {
           setSelectedStudent(classData.students[0]);
         }
 
-        // Set default selected exams (all exams by type)
-        const wts = [];
-        const mts = [];
-        const cpts = [];
-        const spts = [];
-        const others = [];
+        // Set default selected exams by type
+        const typesMap = {};
         Object.values(classData.exams).forEach(exam => {
-          if (exam.type === 'WT') wts.push(exam.name);
-          if (exam.type === 'MT') mts.push(exam.name);
-          if (exam.type === 'CPT') cpts.push(exam.name);
-          if (exam.type === 'SPT') spts.push(exam.name);
-          if (exam.type === 'OTHER') others.push(exam.name);
+          const t = exam.type || 'OTHER';
+          if (!typesMap[t]) typesMap[t] = [];
+          typesMap[t].push(exam.name);
         });
-        setSelectedWts(wts);
-        setSelectedMts(mts);
-        setSelectedCpts(cpts);
-        setSelectedSpts(spts);
-        setSelectedOthers(others);
+        setSelectedExamsByType(typesMap);
+        setSectionOrder(Object.keys(typesMap));
+        setSelectedWts(typesMap['WT'] || []);
+        setSelectedMts(typesMap['MT'] || []);
+        setSelectedCpts(typesMap['CPT'] || []);
+        setSelectedSpts(typesMap['SPT'] || []);
+        setSelectedOthers(typesMap['OTHER'] || []);
         // Auto-select first 6 exams for consolidated report
         const allExamNames = Object.keys(classData.exams);
         setConsolidatedExams([
@@ -240,7 +237,7 @@ export default function App() {
           allExamNames[5] || ''
         ]);
         setGraphExamType('AUTO');
-        setSelectedGraphExams(spts.length > 0 ? spts : (cpts.length > 0 ? cpts : (wts.length > 0 ? wts : mts)));
+        setSelectedGraphExams(typesMap['SPT']?.length > 0 ? typesMap['SPT'] : (typesMap['CPT']?.length > 0 ? typesMap['CPT'] : (typesMap['WT']?.length > 0 ? typesMap['WT'] : (typesMap['MT'] || []))));
         setAvgExamMode('AUTO');
         setSelectedAvgExams([]);
       } catch (err) {
@@ -290,23 +287,19 @@ export default function App() {
     }
 
     // Reset exams list based on this class
-    const wts = [];
-    const mts = [];
-    const cpts = [];
-    const spts = [];
-    const others = [];
+    const typesMap = {};
     Object.values(classData.exams).forEach(exam => {
-      if (exam.type === 'WT') wts.push(exam.name);
-      if (exam.type === 'MT') mts.push(exam.name);
-      if (exam.type === 'CPT') cpts.push(exam.name);
-      if (exam.type === 'SPT') spts.push(exam.name);
-      if (exam.type === 'OTHER') others.push(exam.name);
+      const t = exam.type || 'OTHER';
+      if (!typesMap[t]) typesMap[t] = [];
+      typesMap[t].push(exam.name);
     });
-    setSelectedWts(wts);
-    setSelectedMts(mts);
-    setSelectedCpts(cpts);
-    setSelectedSpts(spts);
-    setSelectedOthers(others);
+    setSelectedExamsByType(typesMap);
+    setSectionOrder(Object.keys(typesMap));
+    setSelectedWts(typesMap['WT'] || []);
+    setSelectedMts(typesMap['MT'] || []);
+    setSelectedCpts(typesMap['CPT'] || []);
+    setSelectedSpts(typesMap['SPT'] || []);
+    setSelectedOthers(typesMap['OTHER'] || []);
     // Reset consolidated exams for new class (up to 6)
     const allExamNames = Object.keys(classData.exams);
     setConsolidatedExams([
@@ -318,7 +311,7 @@ export default function App() {
       allExamNames[5] || ''
     ]);
     setGraphExamType('AUTO');
-    setSelectedGraphExams(spts.length > 0 ? spts : (cpts.length > 0 ? cpts : (wts.length > 0 ? wts : mts)));
+    setSelectedGraphExams(typesMap['SPT']?.length > 0 ? typesMap['SPT'] : (typesMap['CPT']?.length > 0 ? typesMap['CPT'] : (typesMap['WT']?.length > 0 ? typesMap['WT'] : (typesMap['MT'] || []))));
     setAvgExamMode('AUTO');
     setSelectedAvgExams([]);
   };
@@ -673,25 +666,21 @@ export default function App() {
     setSelectedStudent(classData.students[0]);
 
     // Select all exams by default
-    const wts = [];
-    const mts = [];
-    const cpts = [];
-    const spts = [];
-    const others = [];
+    const typesMap = {};
     Object.values(classData.exams).forEach(exam => {
-      if (exam.type === 'WT') wts.push(exam.name);
-      if (exam.type === 'MT') mts.push(exam.name);
-      if (exam.type === 'CPT') cpts.push(exam.name);
-      if (exam.type === 'SPT') spts.push(exam.name);
-      if (exam.type === 'OTHER') others.push(exam.name);
+      const t = exam.type || 'OTHER';
+      if (!typesMap[t]) typesMap[t] = [];
+      typesMap[t].push(exam.name);
     });
-    setSelectedWts(wts);
-    setSelectedMts(mts);
-    setSelectedCpts(cpts);
-    setSelectedSpts(spts);
-    setSelectedOthers(others);
+    setSelectedExamsByType(typesMap);
+    setSectionOrder(Object.keys(typesMap));
+    setSelectedWts(typesMap['WT'] || []);
+    setSelectedMts(typesMap['MT'] || []);
+    setSelectedCpts(typesMap['CPT'] || []);
+    setSelectedSpts(typesMap['SPT'] || []);
+    setSelectedOthers(typesMap['OTHER'] || []);
     setGraphExamType('AUTO');
-    setSelectedGraphExams(spts.length > 0 ? spts : (cpts.length > 0 ? cpts : (wts.length > 0 ? wts : mts)));
+    setSelectedGraphExams(typesMap['SPT']?.length > 0 ? typesMap['SPT'] : (typesMap['CPT']?.length > 0 ? typesMap['CPT'] : (typesMap['WT']?.length > 0 ? typesMap['WT'] : (typesMap['MT'] || []))));
     setAvgExamMode('AUTO');
     setSelectedAvgExams([]);
   };
@@ -709,21 +698,17 @@ export default function App() {
     return result;
   };
 
-  // Compile lists of all exam types for checkboxes
-  const classWts = [];
-  const classMts = [];
-  const classCpts = [];
-  const classSpts = [];
-  const classOthers = [];
-  if (activeClassData) {
+  // Derive exam types present in activeClassData:
+  const examTypesMap = useMemo(() => {
+    if (!activeClassData || !activeClassData.exams) return {};
+    const map = {};
     Object.values(activeClassData.exams).forEach(exam => {
-      if (exam.type === 'WT') classWts.push(exam.name);
-      if (exam.type === 'MT') classMts.push(exam.name);
-      if (exam.type === 'CPT') classCpts.push(exam.name);
-      if (exam.type === 'SPT') classSpts.push(exam.name);
-      if (exam.type === 'OTHER') classOthers.push(exam.name);
+      const type = exam.type || 'OTHER';
+      if (!map[type]) map[type] = [];
+      map[type].push(exam.name);
     });
-  }
+    return map;
+  }, [activeClassData]);
 
   return (
     <div className="app-container">
@@ -879,24 +864,14 @@ export default function App() {
 
             {/* Section Ordering Widget (when multiple table sections exist) */}
             {(() => {
-              const activeSections = [];
-              if (selectedWts.length > 0) activeSections.push('WT');
-              if (selectedMts.length > 0) activeSections.push('MT');
-              if (selectedCpts.length > 0) activeSections.push('CPT');
-              if (selectedSpts.length > 0) activeSections.push('SPT');
-              if (selectedOthers.length > 0) activeSections.push('OTHER');
+              const allTypes = Object.keys(examTypesMap);
+              const activeTypes = allTypes.filter(t => (selectedExamsByType[t] !== undefined ? selectedExamsByType[t].length > 0 : (examTypesMap[t] || []).length > 0));
+              if (activeTypes.length <= 1) return null;
 
-              if (activeSections.length <= 1) return null;
-
-              const secNames = {
-                WT: 'Weekly Tests Table',
-                MT: 'Monthly Tests Table',
-                CPT: 'Chapterwise Tests Table',
-                SPT: 'Subjectwise Tests Table',
-                OTHER: 'Other Tests Table'
-              };
-
-              const currentOrdered = sectionOrder.filter(s => activeSections.includes(s));
+              const currentOrdered = sectionOrder.filter(s => activeTypes.includes(s));
+              activeTypes.forEach(t => {
+                if (!currentOrdered.includes(t)) currentOrdered.push(t);
+              });
 
               const moveSec = (idx, dir) => {
                 const targetIdx = idx + dir;
@@ -905,7 +880,7 @@ export default function App() {
                 const temp = newOrdered[idx];
                 newOrdered[idx] = newOrdered[targetIdx];
                 newOrdered[targetIdx] = temp;
-                const remaining = sectionOrder.filter(s => !activeSections.includes(s));
+                const remaining = sectionOrder.filter(s => !activeTypes.includes(s));
                 setSectionOrder([...newOrdered, ...remaining]);
               };
 
@@ -917,7 +892,7 @@ export default function App() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {currentOrdered.map((sec, idx) => (
                       <div key={sec} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', background: 'var(--bg-card)', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '12px' }}>
-                        <span><strong style={{ color: 'var(--primary)' }}>#{idx + 1}</strong> {secNames[sec]}</span>
+                        <span><strong style={{ color: 'var(--primary)' }}>#{idx + 1}</strong> {getExamTypeLabel(sec).tableTitle}</span>
                         <div className="order-btn-group">
                           <button type="button" className="btn-order" disabled={idx === 0} onClick={() => moveSec(idx, -1)} title="Move Table 1st / Earlier">▲</button>
                           <button type="button" className="btn-order" disabled={idx === currentOrdered.length - 1} onClick={() => moveSec(idx, 1)} title="Move Table 2nd / Later">▼</button>
@@ -929,55 +904,35 @@ export default function App() {
               );
             })()}
 
-            {/* 5. Weekly Test Reorder & Select */}
-            {classWts.length > 0 && (
-              <ExamOrderList 
-                title="Weekly Tests (Arrange Columns)"
-                allExams={classWts}
-                selectedExams={selectedWts}
-                setSelectedExams={setSelectedWts}
-              />
-            )}
+            {/* Separate Exam Column Reorder & Select for each exam type */}
+            {(() => {
+              const allTypes = Object.keys(examTypesMap);
+              const orderedTypes = sectionOrder.filter(t => allTypes.includes(t));
+              allTypes.forEach(t => {
+                if (!orderedTypes.includes(t)) orderedTypes.push(t);
+              });
 
-            {/* 6. Monthly Test Reorder & Select */}
-            {classMts.length > 0 && (
-              <ExamOrderList 
-                title="Monthly Tests (Arrange Columns)"
-                allExams={classMts}
-                selectedExams={selectedMts}
-                setSelectedExams={setSelectedMts}
-              />
-            )}
-
-            {/* 7. Chapterwise Test Reorder & Select */}
-            {classCpts.length > 0 && (
-              <ExamOrderList 
-                title="Chapterwise Tests (Arrange Columns)"
-                allExams={classCpts}
-                selectedExams={selectedCpts}
-                setSelectedExams={setSelectedCpts}
-              />
-            )}
-
-            {/* 8. Subjectwise Test Reorder & Select */}
-            {classSpts.length > 0 && (
-              <ExamOrderList 
-                title="Subjectwise Tests (Arrange Columns)"
-                allExams={classSpts}
-                selectedExams={selectedSpts}
-                setSelectedExams={setSelectedSpts}
-              />
-            )}
-
-            {/* 8b. Other/Custom Test Reorder & Select */}
-            {classOthers.length > 0 && (
-              <ExamOrderList 
-                title="Tests (Arrange Columns)"
-                allExams={classOthers}
-                selectedExams={selectedOthers}
-                setSelectedExams={setSelectedOthers}
-              />
-            )}
+              return orderedTypes.map(type => {
+                const allList = examTypesMap[type] || [];
+                if (allList.length === 0) return null;
+                const selList = selectedExamsByType[type] !== undefined ? selectedExamsByType[type] : allList;
+                return (
+                  <ExamOrderList 
+                    key={type}
+                    title={`${getExamTypeLabel(type).label} (Arrange Columns)`}
+                    allExams={allList}
+                    selectedExams={selList}
+                    setSelectedExams={(updater) => {
+                      setSelectedExamsByType(prev => {
+                        const cur = prev[type] !== undefined ? prev[type] : allList;
+                        const next = typeof updater === 'function' ? updater(cur) : updater;
+                        return { ...prev, [type]: next };
+                      });
+                    }}
+                  />
+                );
+              });
+            })()}
 
             {/* 8c. Performance Graph Exam Selector */}
             {activeClassData && Object.keys(activeClassData.exams).length > 0 && (
@@ -993,11 +948,11 @@ export default function App() {
                   onChange={(e) => setGraphExamType(e.target.value)}
                 >
                   <option value="AUTO">Auto (Recommended)</option>
-                  {classSpts.length > 0 && <option value="SPT">Subjectwise Tests (SPT)</option>}
-                  {classCpts.length > 0 && <option value="CPT">Chapterwise Tests (CPT)</option>}
-                  {classWts.length > 0 && <option value="WT">Weekly Tests (WT)</option>}
-                  {classMts.length > 0 && <option value="MT">Monthly Tests (MT)</option>}
-                  {classOthers.length > 0 && <option value="OTHER">Other Tests</option>}
+                  {Object.keys(examTypesMap).map(type => (
+                    <option key={type} value={type}>
+                      {getExamTypeLabel(type).label} ({type})
+                    </option>
+                  ))}
                   <option value="CUSTOM">Specific Exams (Custom Pick)</option>
                   <option value="NONE">Hide Graph</option>
                 </select>
@@ -1188,6 +1143,7 @@ export default function App() {
                         selectedCpts={selectedCpts}
                         selectedSpts={selectedSpts}
                         selectedOthers={selectedOthers}
+                        selectedExamsByType={selectedExamsByType}
                         graphExamType={graphExamType}
                         selectedGraphExams={selectedGraphExams}
                         avgExamMode={avgExamMode}
@@ -1239,6 +1195,7 @@ export default function App() {
                                   selectedCpts={selectedCpts}
                                   selectedSpts={selectedSpts}
                                   selectedOthers={selectedOthers}
+                                  selectedExamsByType={selectedExamsByType}
                                   graphExamType={graphExamType}
                                   selectedGraphExams={selectedGraphExams}
                                   avgExamMode={avgExamMode}
@@ -1267,6 +1224,7 @@ export default function App() {
                           selectedCpts={selectedCpts} 
                           selectedSpts={selectedSpts}
                           selectedOthers={selectedOthers}
+                          selectedExamsByType={selectedExamsByType}
                           graphExamType={graphExamType}
                           selectedGraphExams={selectedGraphExams}
                           avgExamMode={avgExamMode}
