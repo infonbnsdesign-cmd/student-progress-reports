@@ -592,7 +592,7 @@ export default function App() {
     }
   };
 
-  // Download Subject Consolidated Report as PNG
+  // Download Subject Consolidated Report as PNG (fitted to A4 Landscape 297mm x 210mm)
   const handleConsolidatedDownloadPng = async () => {
     const node = document.querySelector('.ccr-a4-page');
     if (!node) return;
@@ -600,12 +600,45 @@ export default function App() {
     const btn = document.getElementById('btn-consolidated-png');
     if (btn) { btn.textContent = '⏳ Generating...'; btn.disabled = true; }
 
+    const tableWrapper = node.querySelector('.ccr-table-wrapper');
+    const table = node.querySelector('.ccr-table');
+    const prevZoom = table ? table.style.zoom : '';
+    const prevWidth = node.style.width;
+    const prevMinWidth = node.style.minWidth;
+
     try {
+      // Exact A4 landscape dimensions at 96 DPI (297mm x 210mm)
+      const a4Width = 1123;
+      const a4Height = 794;
+
+      node.style.width = `${a4Width}px`;
+      node.style.minWidth = `${a4Width}px`;
+
+      // If table overflows horizontally (e.g. many exams selected), scale it to fit inside A4 landscape
+      if (table && tableWrapper) {
+        const availableWidth = tableWrapper.clientWidth;
+        const actualTableWidth = table.scrollWidth;
+        if (actualTableWidth > availableWidth && availableWidth > 0) {
+          table.style.zoom = (availableWidth / actualTableWidth).toFixed(4);
+        }
+      }
+
+      const captureHeight = Math.max(a4Height, node.scrollHeight);
+
       const dataUrl = await toPng(node, {
         cacheBust: true,
         backgroundColor: '#ffffff',
+        width: a4Width,
+        height: captureHeight,
         pixelRatio: 2,
-        style: { boxShadow: 'none', borderRadius: '0' }
+        style: {
+          width: `${a4Width}px`,
+          minWidth: `${a4Width}px`,
+          margin: '0',
+          boxShadow: 'none',
+          borderRadius: '0',
+          overflow: 'visible'
+        }
       });
       const link = document.createElement('a');
       link.download = `${selectedClass || 'Class'}_Subject_Comparison_Report.png`;
@@ -615,6 +648,9 @@ export default function App() {
       console.error('Consolidated PNG export failed', err);
       alert('Failed to generate PNG. Please try using Chrome or Edge.');
     } finally {
+      if (table) table.style.zoom = prevZoom;
+      node.style.width = prevWidth;
+      node.style.minWidth = prevMinWidth;
       if (btn) { btn.textContent = '🖼️ Download PNG'; btn.disabled = false; }
     }
   };

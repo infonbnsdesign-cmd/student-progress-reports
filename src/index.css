@@ -1170,9 +1170,8 @@ button, input, select, textarea {
 
 /* ── Standard A4 Landscape Sheet (297mm x 210mm) ── */
 .ccr-a4-page {
+  width: 297mm;
   min-width: 297mm;
-  width: max-content;
-  max-width: 100%;
   min-height: 210mm;
   background: #ffffff;
   color: #1e293b;
@@ -1356,7 +1355,7 @@ button, input, select, textarea {
 /* ── Table Wrapper & Table ── */
 .ccr-table-wrapper {
   width: 100%;
-  overflow-x: auto;
+  overflow-x: visible;
   overflow-y: visible;
   flex: 1;
 }
@@ -1394,9 +1393,9 @@ button, input, select, textarea {
 }
 
 .ccr-th-name {
-  width: 115px;
-  min-width: 90px;
-  max-width: 130px;
+  width: 105px;
+  min-width: 85px;
+  max-width: 115px;
   font-size: 7.5pt !important;
   font-weight: 900;
   text-align: center;
