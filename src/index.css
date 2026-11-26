@@ -1443,6 +1443,12 @@ button, input, select, textarea {
   background: #ffffff;
 }
 
+.ccr-th-col-avg {
+  color: #047857;
+  background: #d1fae5 !important;
+  font-weight: 900 !important;
+}
+
 /* ── Max Marks Row ── */
 .ccr-tr-maxmarks th {
   font-size: 7pt;
@@ -1462,6 +1468,7 @@ button, input, select, textarea {
 .ccr-th-max-r4 { color: #d97706; }
 .ccr-th-max-r5 { color: #7c3aed; }
 .ccr-th-max-r6 { color: #e11d48; }
+.ccr-th-max-avg { color: #047857; background: #d1fae5 !important; font-weight: 900 !important; }
 
 /* ── Table Body Data Cells ── */
 .ccr-td-sno {
@@ -1504,6 +1511,11 @@ button, input, select, textarea {
   font-size: 7.5pt;
   background: #ffffff;
   padding: 1.5px 0.5px !important;
+}
+
+.ccr-td-avg-val {
+  background: #f0fdf4 !important;
+  font-weight: 800 !important;
 }
 
 /* ── Status Cells ── */

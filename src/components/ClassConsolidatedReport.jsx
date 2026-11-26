@@ -9,6 +9,7 @@ import React, { useRef } from 'react';
 export default function ClassConsolidatedReport({
   classData,
   selectedExams = [],
+  showSubjectAverage = true,
   schoolName = "NAVA BHARATH NATIONAL SCHOOL",
   logoUrl,
   academicYear = "2026-27",
@@ -20,7 +21,8 @@ export default function ClassConsolidatedReport({
   const activeExams = selectedExams.filter(e => exams[e]);
 
   const showTgt = hasTargets;
-  const subColCount = (showTgt ? 1 : 0) + activeExams.length;
+  const hasAvgCol = showSubjectAverage && activeExams.length > 0;
+  const subColCount = (showTgt ? 1 : 0) + activeExams.length + (hasAvgCol ? 1 : 0);
   const totalSubjectSpan = (subjects.length + 1) * (subColCount || 1);
 
   const getMaxMark = (examName, sub) => exams[examName]?.subjects[sub] || 100;
@@ -168,7 +170,7 @@ export default function ClassConsolidatedReport({
                 <th className="ccr-th-subject ccr-th-tot" colSpan={subColCount}>TOTAL</th>
               </tr>
 
-              {/* Row 2: Sub-columns with Exam Names directly (TGT + Selected Exam Names) */}
+              {/* Row 2: Sub-columns with Exam Names directly (TGT + Selected Exam Names + AVG) */}
               <tr className="ccr-tr-subcols">
                 {subjects.map(sub => (
                   <React.Fragment key={`subcol-${sub}`}>
@@ -178,6 +180,11 @@ export default function ClassConsolidatedReport({
                         {exam}
                       </th>
                     ))}
+                    {hasAvgCol && (
+                      <th className="ccr-th-col-avg" title={`${sub} Average`}>
+                        AVG
+                      </th>
+                    )}
                   </React.Fragment>
                 ))}
                 {showTgt && <th className="ccr-th-col-tgt">TGT</th>}
@@ -186,6 +193,11 @@ export default function ClassConsolidatedReport({
                     {exam}
                   </th>
                 ))}
+                {hasAvgCol && (
+                  <th className="ccr-th-col-avg" title="Total Average">
+                    AVG
+                  </th>
+                )}
               </tr>
 
               {/* Row 3: Maximum Marks */}
@@ -204,6 +216,11 @@ export default function ClassConsolidatedReport({
                           {getMaxMark(exam, sub)}
                         </th>
                       ))}
+                      {hasAvgCol && (
+                        <th className="ccr-th-max ccr-th-max-avg">
+                          {max}
+                        </th>
+                      )}
                     </React.Fragment>
                   );
                 })}
@@ -216,6 +233,13 @@ export default function ClassConsolidatedReport({
                     </th>
                   );
                 })}
+                {hasAvgCol && (
+                  <th className="ccr-th-max ccr-th-max-avg">
+                    {activeExams.length > 0
+                      ? Math.round(activeExams.reduce((s, exam) => s + subjects.reduce((sum, sub) => sum + getMaxMark(exam, sub), 0), 0) / activeExams.length)
+                      : targetTotalMax}
+                  </th>
+                )}
               </tr>
             </thead>
 
@@ -226,24 +250,34 @@ export default function ClassConsolidatedReport({
                   <tr key={student.sno || sIdx} className={sIdx % 2 === 0 ? 'ccr-row-even' : 'ccr-row-odd'}>
                     <td className="ccr-td-sno">{sIdx + 1}</td>
                     <td className="ccr-td-name">{student.name}</td>
-                    {subjects.map(sub => (
-                      <React.Fragment key={`${student.sno || sIdx}-${sub}`}>
-                        {showTgt && (
-                          <td className={`ccr-td-tgt ${getCellClass(student.targets?.[sub], targetMaxMarks?.[sub] || getSubjectMax(sub))}`}>
-                            {fmt(student.targets?.[sub])}
-                          </td>
-                        )}
-                        {activeExams.map(exam => {
-                          const val = student.marks[exam]?.[sub];
-                          const max = getMaxMark(exam, sub);
-                          return (
-                            <td key={`${exam}-${sub}`} className={`ccr-td-mark ${getCellClass(val, max)}`}>
-                              {fmt(val)}
+                    {subjects.map(sub => {
+                      const subExamMarks = activeExams.map(exam => student.marks[exam]?.[sub]);
+                      const subAvg = calcAverage(subExamMarks);
+                      const subMax = getSubjectMax(sub);
+                      return (
+                        <React.Fragment key={`${student.sno || sIdx}-${sub}`}>
+                          {showTgt && (
+                            <td className={`ccr-td-tgt ${getCellClass(student.targets?.[sub], targetMaxMarks?.[sub] || getSubjectMax(sub))}`}>
+                              {fmt(student.targets?.[sub])}
                             </td>
-                          );
-                        })}
-                      </React.Fragment>
-                    ))}
+                          )}
+                          {activeExams.map(exam => {
+                            const val = student.marks[exam]?.[sub];
+                            const max = getMaxMark(exam, sub);
+                            return (
+                              <td key={`${exam}-${sub}`} className={`ccr-td-mark ${getCellClass(val, max)}`}>
+                                {fmt(val)}
+                              </td>
+                            );
+                          })}
+                          {hasAvgCol && (
+                            <td className={`ccr-td-avg-val ${getCellClass(subAvg, subMax)}`}>
+                              {fmt(subAvg)}
+                            </td>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                     {showTgt && (
                       <td className={`ccr-td-tot ccr-td-tgt ${getCellClass(tgtTotal, targetTotalMax)}`}>
                         {fmt(tgtTotal)}
@@ -258,6 +292,18 @@ export default function ClassConsolidatedReport({
                         </td>
                       );
                     })}
+                    {hasAvgCol && (() => {
+                      const studentExamTotals = activeExams.map(exam => calcStudentExamTotal(student, exam));
+                      const studentAvgTotal = calcAverage(studentExamTotals);
+                      const examMaxTotal = activeExams.length > 0
+                        ? (activeExams.reduce((s, exam) => s + subjects.reduce((sum, sub) => sum + getMaxMark(exam, sub), 0), 0) / activeExams.length)
+                        : targetTotalMax;
+                      return (
+                        <td className={`ccr-td-tot ccr-td-avg-val ${getCellClass(studentAvgTotal, examMaxTotal)}`}>
+                          {fmt(studentAvgTotal)}
+                        </td>
+                      );
+                    })()}
                   </tr>
                 );
               })}
@@ -265,24 +311,33 @@ export default function ClassConsolidatedReport({
 {/* CLASS AVERAGE row */}
                <tr className="ccr-tr-average">
                  <td className="ccr-td-avg-title" colSpan={2}>CLASS AVERAGE</td>
-                 {subjects.map(sub => (
-                  <React.Fragment key={`avg-${sub}`}>
-                    {showTgt && (
-                      <td className="ccr-td-avg-tgt">
-                        {fmt(calcAverage(students.map(s => s.targets?.[sub])))}
-                      </td>
-                    )}
-                    {activeExams.map(exam => {
-                      const avgVal = calcAverage(students.map(s => s.marks[exam]?.[sub]));
-                      const max = getMaxMark(exam, sub);
-                      return (
-                        <td key={`avg-${exam}-${sub}`} className={`ccr-td-avg-mark ${getCellClass(avgVal, max)}`}>
-                          {fmt(avgVal)}
-                        </td>
-                      );
-                    })}
-                  </React.Fragment>
-                ))}
+                 {subjects.map(sub => {
+                   const classSubAvg = calcAverage(students.map(s => calcAverage(activeExams.map(e => s.marks[e]?.[sub]))));
+                   const subMax = getSubjectMax(sub);
+                   return (
+                     <React.Fragment key={`avg-${sub}`}>
+                       {showTgt && (
+                         <td className="ccr-td-avg-tgt">
+                           {fmt(calcAverage(students.map(s => s.targets?.[sub])))}
+                         </td>
+                       )}
+                       {activeExams.map(exam => {
+                         const avgVal = calcAverage(students.map(s => s.marks[exam]?.[sub]));
+                         const max = getMaxMark(exam, sub);
+                         return (
+                           <td key={`avg-${exam}-${sub}`} className={`ccr-td-avg-mark ${getCellClass(avgVal, max)}`}>
+                             {fmt(avgVal)}
+                           </td>
+                         );
+                       })}
+                       {hasAvgCol && (
+                         <td className={`ccr-td-avg-mark ccr-td-avg-val ${getCellClass(classSubAvg, subMax)}`}>
+                           {fmt(classSubAvg)}
+                         </td>
+                       )}
+                     </React.Fragment>
+                   );
+                 })}
                 {showTgt && (
                   <td className={`ccr-td-avg-tgt ccr-td-avg-tot ${getCellClass(calcAverage(students.map(s => calcStudentTgtTotal(s))), targetTotalMax)}`}>
                     {fmt(calcAverage(students.map(s => calcStudentTgtTotal(s))))}
@@ -297,6 +352,17 @@ export default function ClassConsolidatedReport({
                     </td>
                   );
                 })}
+                {hasAvgCol && (() => {
+                  const classTotAvg = calcAverage(students.map(s => calcAverage(activeExams.map(e => calcStudentExamTotal(s, e)))));
+                  const examMaxTotal = activeExams.length > 0
+                    ? (activeExams.reduce((s, exam) => s + subjects.reduce((sum, sub) => sum + getMaxMark(exam, sub), 0), 0) / activeExams.length)
+                    : targetTotalMax;
+                  return (
+                    <td className={`ccr-td-avg-mark ccr-td-avg-tot ccr-td-avg-val ${getCellClass(classTotAvg, examMaxTotal)}`}>
+                      {fmt(classTotAvg)}
+                    </td>
+                  );
+                })()}
               </tr>
               </tbody>
             </table>

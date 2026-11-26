@@ -123,6 +123,7 @@ export default function App() {
   const [selectedExamsByType, setSelectedExamsByType] = useState({});
   const [showExamsWithoutAveraging, setShowExamsWithoutAveraging] = useState(false);
   const [consolidatedExams, setConsolidatedExams] = useState(['', '', '', '', '', '']); // R-1 to R-6
+  const [showConsolidatedSubjectAverage, setShowConsolidatedSubjectAverage] = useState(true);
   const [graphExamType, setGraphExamType] = useState('AUTO');
   const [selectedGraphExams, setSelectedGraphExams] = useState([]);
   const [avgExamMode, setAvgExamMode] = useState('AUTO');
@@ -834,32 +835,51 @@ export default function App() {
 
             {/* 4b. Consolidated Report Exam Selectors (only in consolidated tab) */}
             {activeTab === 'consolidated' && activeClassData && (
-              <div className="control-group">
-                <label className="control-label">Map Exams to R-1 → R-6</label>
-                <div className="ccr-exam-selector">
-                  {['R-1', 'R-2', 'R-3', 'R-4', 'R-5', 'R-6'].map((label, idx) => (
-                    <div key={label} className="ccr-exam-slot">
-                      <span className="ccr-exam-slot-label">{label}</span>
-                      <select
-                        className="select-input"
-                        value={consolidatedExams[idx]}
-                        onChange={(e) => {
-                          const next = [...consolidatedExams];
-                          next[idx] = e.target.value;
-                          setConsolidatedExams(next);
-                        }}
-                      >
-                        <option value="">— None —</option>
-                        {Object.values(activeClassData.exams).map(exam => (
-                          <option key={exam.name} value={exam.name}>
-                            {exam.name} ({exam.type})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  ))}
+              <>
+                <div className="control-group">
+                  <label className="control-label">Map Exams to R-1 → R-6</label>
+                  <div className="ccr-exam-selector">
+                    {['R-1', 'R-2', 'R-3', 'R-4', 'R-5', 'R-6'].map((label, idx) => (
+                      <div key={label} className="ccr-exam-slot">
+                        <span className="ccr-exam-slot-label">{label}</span>
+                        <select
+                          className="select-input"
+                          value={consolidatedExams[idx]}
+                          onChange={(e) => {
+                            const next = [...consolidatedExams];
+                            next[idx] = e.target.value;
+                            setConsolidatedExams(next);
+                          }}
+                        >
+                          <option value="">— None —</option>
+                          {Object.values(activeClassData.exams).map(exam => (
+                            <option key={exam.name} value={exam.name}>
+                              {exam.name} ({exam.type})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+
+                {/* 4c. Subject Average Selector (only in consolidated tab) */}
+                <div className="control-group" style={{ borderColor: 'rgba(16,185,129,0.25)', background: 'rgba(16,185,129,0.06)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <label className="control-label" style={{ color: '#059669', fontWeight: '700', margin: 0 }}>
+                      📐 Subject Average Column
+                    </label>
+                  </div>
+                  <select
+                    className="select-input"
+                    value={showConsolidatedSubjectAverage ? 'SHOW' : 'HIDE'}
+                    onChange={(e) => setShowConsolidatedSubjectAverage(e.target.value === 'SHOW')}
+                  >
+                    <option value="SHOW">Show Average for each Subject</option>
+                    <option value="HIDE">Hide Subject Average</option>
+                  </select>
+                </div>
+              </>
             )}
 
             {/* Section Ordering Widget (when multiple table sections exist) */}
@@ -1125,6 +1145,7 @@ export default function App() {
                       <ClassConsolidatedReport
                         classData={activeClassData}
                         selectedExams={consolidatedExams.filter(e => e !== '')}
+                        showSubjectAverage={showConsolidatedSubjectAverage}
                         schoolName={schoolName}
                         logoUrl={logoUrl}
                         academicYear={academicYear}
