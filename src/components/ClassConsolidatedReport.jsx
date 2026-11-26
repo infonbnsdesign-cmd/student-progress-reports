@@ -34,16 +34,38 @@ export default function ClassConsolidatedReport({
   };
 
   const isNeet = (className || '').toLowerCase().includes('neet');
+  const effectiveSubjectCount = subjects.length > 5 ? 5 : subjects.length;
 
   const getExamTotalMax = (examName) => {
-    if (isNeet) return 720;
+    if (isNeet) {
+      const sumMax = subjects.reduce((s, sub) => s + getMaxMark(examName, sub), 0);
+      return sumMax > 0 ? sumMax : 720;
+    }
     const sampleMax = subjects.length > 0 ? (exams[examName]?.subjects[subjects[0]] || 100) : 100;
-    if (sampleMax === 25) return 125;
-    if (sampleMax === 50) return 250;
-    return 500;
+    if (sampleMax === 25) return effectiveSubjectCount * 25;
+    if (sampleMax === 50) return effectiveSubjectCount * 50;
+    return effectiveSubjectCount * sampleMax;
   };
 
-  const targetTotalMax = isNeet ? 720 : 500;
+  const targetTotalMax = isNeet
+    ? (subjects.reduce((s, sub) => s + (targetMaxMarks?.[sub] || getSubjectMax(sub)), 0) || 720)
+    : effectiveSubjectCount * (subjects.length > 0 ? (targetMaxMarks?.[subjects[0]] || getSubjectMax(subjects[0])) : 100);
+
+  /**
+   * Returns true if the student has at least one numeric or AB mark
+   * in any selected exam for the given subject.
+   * Used to determine whether a subject is "active" for this student.
+   */
+  const isSubjectActiveForStudent = (student, sub) => {
+    if (activeExams.length === 0) {
+      const tgtVal = student.targets?.[sub];
+      return typeof tgtVal === 'number' || tgtVal === 'AB' || tgtVal === 'OD';
+    }
+    return activeExams.some(exam => {
+      const val = student.marks[exam]?.[sub];
+      return typeof val === 'number' || val === 'AB' || val === 'OD';
+    });
+  };
 
   const fmt = (val) => {
     if (val === null || val === undefined || val === '-' || val === '' || val === 'NA' || val === 'N/A') return '-';
@@ -58,6 +80,8 @@ export default function ClassConsolidatedReport({
     let hasNumber = false;
     let hasAb = false;
     subjects.forEach(sub => {
+      // Skip subjects that are not active for this student (all '-' across all exams)
+      if (!isSubjectActiveForStudent(student, sub)) return;
       const val = student.marks[examName]?.[sub];
       if (typeof val === 'number') {
         total += val;
@@ -76,6 +100,7 @@ export default function ClassConsolidatedReport({
     let total = 0;
     let hasNumber = false;
     subjects.forEach(sub => {
+      if (!isSubjectActiveForStudent(student, sub)) return;
       const val = student.targets[sub];
       if (typeof val === 'number') {
         total += val;
@@ -275,8 +300,11 @@ export default function ClassConsolidatedReport({
                     <td className="ccr-td-sno">{sIdx + 1}</td>
                     <td className="ccr-td-name">{student.name}</td>
                     {subjects.map(sub => {
-                      const subExamMarks = activeExams.map(exam => student.marks[exam]?.[sub]);
-                      const subAvg = calcAverage(subExamMarks);
+                      const isActive = isSubjectActiveForStudent(student, sub);
+                      const subExamMarks = isActive
+                        ? activeExams.map(exam => student.marks[exam]?.[sub])
+                        : [];
+                      const subAvg = isActive ? calcAverage(subExamMarks) : '-';
                       const subMax = getSubjectMax(sub);
                       return (
                         <React.Fragment key={`${student.sno || sIdx}-${sub}`}>
@@ -286,7 +314,7 @@ export default function ClassConsolidatedReport({
                             </td>
                           )}
                           {activeExams.map(exam => {
-                            const val = student.marks[exam]?.[sub];
+                            const val = isActive ? student.marks[exam]?.[sub] : '-';
                             const max = getMaxMark(exam, sub);
                             return (
                               <td key={`${exam}-${sub}`} className={`ccr-td-mark ${getCellClass(val, max)}`}>
