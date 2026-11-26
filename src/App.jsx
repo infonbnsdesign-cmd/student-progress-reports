@@ -592,6 +592,33 @@ export default function App() {
     }
   };
 
+  // Download Subject Consolidated Report as PNG
+  const handleConsolidatedDownloadPng = async () => {
+    const node = document.querySelector('.ccr-a4-page');
+    if (!node) return;
+
+    const btn = document.getElementById('btn-consolidated-png');
+    if (btn) { btn.textContent = '⏳ Generating...'; btn.disabled = true; }
+
+    try {
+      const dataUrl = await toPng(node, {
+        cacheBust: true,
+        backgroundColor: '#ffffff',
+        pixelRatio: 2,
+        style: { boxShadow: 'none', borderRadius: '0' }
+      });
+      const link = document.createElement('a');
+      link.download = `${selectedClass || 'Class'}_Subject_Comparison_Report.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Consolidated PNG export failed', err);
+      alert('Failed to generate PNG. Please try using Chrome or Edge.');
+    } finally {
+      if (btn) { btn.textContent = '🖼️ Download PNG'; btn.disabled = false; }
+    }
+  };
+
   // Export report card to Image (PNG)
   const handleExportPng = () => {
     const node = document.querySelector('.report-card');
@@ -1138,6 +1165,14 @@ export default function App() {
                       <div className="preview-actions">
                         <button className="btn btn-primary" onClick={handlePrint} style={{ width: 'auto' }}>
                           🖨️ Print Report
+                        </button>
+                        <button
+                          id="btn-consolidated-png"
+                          className="btn btn-secondary btn-export-image"
+                          onClick={handleConsolidatedDownloadPng}
+                          style={{ width: 'auto' }}
+                        >
+                          🖼️ Download PNG
                         </button>
                       </div>
                     </div>
