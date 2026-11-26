@@ -128,7 +128,7 @@ export default function ClassConsolidatedReport({
           <div className="ccr-school-info">
             <h2 className="ccr-school-name">{schoolName}</h2>
             <p className="ccr-report-subtitle">
-              Class Consolidated Performance Report{' '}
+              Subject Consolidated Performance Report{' '}
               <span className="ccr-subtitle-pipe">|</span>{' '}
               <span className="ccr-subtitle-year">{academicYear}</span>
             </p>

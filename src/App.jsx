@@ -1099,7 +1099,7 @@ export default function App() {
                 className={`tab ${activeTab === 'consolidated' ? 'active' : ''}`}
                 onClick={() => setActiveTab('consolidated')}
               >
-                📊 Class Consolidated Report
+                📊 Subject Consolidated Report
               </button>
             </div>
 
@@ -1110,7 +1110,7 @@ export default function App() {
                   <div className="consolidated-tab-wrapper">
                     <div className="preview-header">
                       <div>
-                        <h2 style={{ fontSize: '20px' }}>Class Consolidated Report</h2>
+                        <h2 style={{ fontSize: '20px' }}>Subject Consolidated Report</h2>
                         <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '4px' }}>
                           Showing all students for class <strong>{selectedClass}</strong> with target and selected exams.
                         </p>

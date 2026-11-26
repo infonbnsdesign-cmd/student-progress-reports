@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "deploy": "vite build && gh-pages -d dist",
     "preview": "vite preview",
     "electron:start": "electron .",
     "build:exe": "vite build && electron-packager . \"Student Progress Reports\" --platform=win32 --arch=x64 --out=dist-app --overwrite"
