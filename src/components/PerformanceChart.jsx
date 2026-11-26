@@ -50,9 +50,9 @@ const barLabelPlugin = {
           const rawMarks = dataset.rawMarks || (chart.data.rawMarks ? chart.data.rawMarks[dataset.label] : null);
           const rawVal = rawMarks ? rawMarks[index] : val;
 
-          // USER REQUEST: Do NOT print "AB" on top of the graph stem!
-          if (val === 0 || rawVal === null || rawVal === undefined || rawVal === 'AB' || rawVal === 'NA') {
-            return; // Skip label for absent / zero marks
+          // USER REQUEST: Do NOT print "AB" or "-" on top of the graph stem!
+          if (val === 0 || rawVal === null || rawVal === undefined || rawVal === 'AB' || rawVal === 'NA' || rawVal === '-' || rawVal === 'OD' || typeof rawVal !== 'number') {
+            return; // Skip label for absent / zero / empty marks
           }
 
           ctx.save();
@@ -111,7 +111,7 @@ export default function PerformanceChart({ student, subjects, selectedExams, cla
     const examName = item;
     const data = subjects.map(sub => {
       const val = student.marks[examName] ? student.marks[examName][sub] : null;
-      if (val === null || val === undefined || val === 'AB' || val === 'NA') {
+      if (val === null || val === undefined || val === 'AB' || val === 'NA' || val === '-' || typeof val !== 'number') {
         return 0; // represent absent as 0 on scale
       }
       return Math.round(val);

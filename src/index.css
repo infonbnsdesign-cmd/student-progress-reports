@@ -845,6 +845,22 @@ button, input, select, textarea {
   text-align: center;
 }
 
+/* Empty or '-' cell styling */
+.report-table td.empty-cell {
+  color: #94a3b8 !important;
+  font-weight: 500;
+  text-align: center;
+  background: none !important;
+}
+
+/* OD cell styling */
+.report-table td.od-cell {
+  color: #7c3aed !important;
+  font-weight: 700;
+  text-align: center;
+  background: none !important;
+}
+
 /* Below pass mark → Red text */
 .report-table td.fail-cell {
   color: #dc2626 !important;
@@ -1519,6 +1535,19 @@ button, input, select, textarea {
 }
 
 /* ── Status Cells ── */
+.ccr-cell-empty {
+  color: #94a3b8 !important;
+  font-weight: 500 !important;
+  text-align: center;
+}
+
+.ccr-cell-od {
+  color: #7c3aed !important;
+  font-weight: 800 !important;
+  background: #f5f3ff !important;
+  text-align: center;
+}
+
 .ccr-cell-ab {
   background: #eff6ff !important;
   color: #1e40af !important;

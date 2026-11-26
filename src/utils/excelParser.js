@@ -137,35 +137,28 @@ export function getExamTypeLabel(type) {
 
 /**
  * Parses raw mark cell value.
- * Converts 'AB', 'NA', '-', empty strings, or nulls to null (indicates absent).
+ * Converts 'AB', 'ABSENT' to 'AB'.
+ * Converts empty strings, nulls, '-', 'NA' to '-'.
+ * Converts 'OD' to 'OD'.
  * Parses valid numbers to float.
  */
 function parseMarkValue(val) {
-  if (val === null || val === undefined) return null;
+  if (val === null || val === undefined) return '-';
   if (typeof val === 'object') {
     if (val.v !== undefined) val = val.v;
     else if (val.w !== undefined) val = val.w;
-    else return null;
+    else return '-';
   }
-  if (val === null || val === undefined) return null;
+  if (val === null || val === undefined) return '-';
   
   const str = val.toString().replace(/\u00a0/g, ' ').trim().toUpperCase();
-  if (
-    str === 'AB' || 
-    str === 'NA' || 
-    str === '-' || 
-    str === '' || 
-    str === 'ABSENT' || 
-    str === 'N/A' || 
-    str === 'A.B' || 
-    str === 'A.B.'
-  ) {
-    return null;
-  }
+  if (str === '' || str === '-' || str === 'NA' || str === 'N/A') return '-';
+  if (str === 'OD' || str === 'O.D' || str === 'O.D.') return 'OD';
+  if (str === 'AB' || str === 'ABSENT' || str === 'A.B' || str === 'A.B.') return 'AB';
   
   const cleanStr = str.replace(/,/g, '.');
   const num = parseFloat(cleanStr);
-  return isNaN(num) ? null : num;
+  return isNaN(num) ? str : num;
 }
 
 const NON_SUBJECT_KEYWORDS = [
@@ -353,18 +346,18 @@ export function parseExcelWorkbook(arrayBuffer) {
           
           if (meta.isTarget) {
             // Store target marks separately
-            if (val !== null) {
+            if (typeof val === 'number') {
               targets[meta.subject] = val;
             } else if (targets[meta.subject] === undefined) {
-              targets[meta.subject] = null;
+              targets[meta.subject] = val;
             }
           } else {
             const existingVal = marks[meta.examName][meta.subject];
-            // Never overwrite an existing valid numeric mark with null!
-            if (val !== null) {
+            // Never overwrite an existing valid numeric mark with empty/dash!
+            if (typeof val === 'number' || val === 'AB' || val === 'OD') {
               marks[meta.examName][meta.subject] = val;
             } else if (existingVal === undefined) {
-              marks[meta.examName][meta.subject] = null;
+              marks[meta.examName][meta.subject] = val;
             }
           }
         }

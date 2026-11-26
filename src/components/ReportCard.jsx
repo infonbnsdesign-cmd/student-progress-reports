@@ -122,7 +122,7 @@ function detectStudentSubjectGroup(allSubjects, studentMarks, exams) {
 
 /**
  * Calculates sum, max possible, and percentage for an exam column,
- * skipping subjects where the student was absent (null).
+ * skipping empty or '-' subjects and evaluating numeric and AB marks.
  */
 function calculateColumnStats(subjects, examMeta, studentMarks) {
   let obtainedSum = 0;
@@ -131,16 +131,18 @@ function calculateColumnStats(subjects, examMeta, studentMarks) {
   let absentCount = 0;
 
   subjects.forEach(sub => {
-    const obtained = studentMarks[sub];
-    const maxMark = examMeta.subjects[sub] || 100;
+    const val = studentMarks[sub];
+    const maxMark = examMeta?.subjects[sub] || 100;
 
-    if (obtained !== null && obtained !== undefined) {
-      obtainedSum += obtained;
+    if (typeof val === 'number') {
+      obtainedSum += val;
       maxPossibleSum += maxMark;
       presentCount++;
-    } else {
+    } else if (val === 'AB') {
+      maxPossibleSum += maxMark;
       absentCount++;
     }
+    // '-' or empty or 'OD' is skipped: do not calculate empty space for total
   });
 
   const percentage = maxPossibleSum > 0 ? (obtainedSum / maxPossibleSum) * 100 : null;
@@ -150,7 +152,7 @@ function calculateColumnStats(subjects, examMeta, studentMarks) {
 
 /**
  * Calculates average obtained and average max for a subject across selected exams,
- * skipping exams where the student was absent.
+ * skipping empty or '-' exams.
  */
 function calculateSubjectAverage(examsMeta, selectedExams, sub, studentMarks) {
   let obtainedSum = 0;
@@ -158,14 +160,18 @@ function calculateSubjectAverage(examsMeta, selectedExams, sub, studentMarks) {
   let presentCount = 0;
 
   selectedExams.forEach(examName => {
-    const obtained = studentMarks[examName] ? studentMarks[examName][sub] : null;
+    const val = studentMarks[examName] ? studentMarks[examName][sub] : '-';
     const maxMark = examsMeta[examName]?.subjects[sub] || 100;
 
-    if (obtained !== null && obtained !== undefined) {
-      obtainedSum += obtained;
+    if (typeof val === 'number') {
+      obtainedSum += val;
+      maxPossibleSum += maxMark;
+      presentCount++;
+    } else if (val === 'AB') {
       maxPossibleSum += maxMark;
       presentCount++;
     }
+    // '-' or empty is skipped: do not calculate empty space in average
   });
 
   const avgObtained = presentCount > 0 ? obtainedSum / presentCount : null;
@@ -175,17 +181,17 @@ function calculateSubjectAverage(examsMeta, selectedExams, sub, studentMarks) {
 }
 
 /**
- * Returns the CSS class for a mark cell based on pass/fail/absent/excellent status.
- * - null/undefined → 'absent-cell' (dark blue)
- * - obtained < passmark → 'fail-cell' (red)
- * - obtained/max >= 0.9 → 'excellent-cell' (green)
- * - else → '' (normal)
+ * Returns the CSS class for a mark cell based on pass/fail/absent/excellent/empty status.
  */
 function getMarkCellClass(obtained, maxMark) {
-  if (obtained === null || obtained === undefined) return 'absent-cell';
-  const passmark = maxMark * 0.4; // 40% of max (WT: 25→10, MT: 50→20)
-  if (obtained < passmark) return 'fail-cell';
-  if (maxMark > 0 && (obtained / maxMark) >= 0.9) return 'excellent-cell';
+  if (obtained === null || obtained === undefined || obtained === '-' || obtained === '' || obtained === 'NA') return 'empty-cell';
+  if (obtained === 'AB') return 'absent-cell';
+  if (obtained === 'OD') return 'od-cell';
+  if (typeof obtained === 'number') {
+    const passmark = maxMark * 0.4;
+    if (obtained < passmark) return 'fail-cell';
+    if (maxMark > 0 && (obtained / maxMark) >= 0.9) return 'excellent-cell';
+  }
   return '';
 }
 
@@ -193,7 +199,7 @@ function getMarkCellClass(obtained, maxMark) {
  * Returns the CSS class for an average cell.
  */
 function getAverageCellClass(avg, avgMax) {
-  if (avg === null || avg === undefined) return 'average-cell';
+  if (avg === null || avg === undefined || avg === '-') return 'average-cell empty-cell';
   const passmark = avgMax * 0.4;
   if (avg < passmark) return 'average-cell fail-avg';
   if (avgMax > 0 && (avg / avgMax) >= 0.9) return 'average-cell excellent-avg';
@@ -305,13 +311,20 @@ function groupExamsByPrefix(examList) {
 }
 
 function ExamTableSection({ title, titleClass, selectedExams, rows, colStats, totalAvg, totalAvgMax, maxPerSubject, passMark, exams, subjects, totalMax, showMaxColumn, hideMeta, showAverage = true, avgExams = [] }) {
-  const formatMark = (val) => (val === null || val === undefined ? "AB" : Math.round(val));
+  const formatMark = (val) => {
+    if (val === null || val === undefined || val === '-' || val === '' || val === 'NA' || val === 'N/A') return '-';
+    if (val === 'AB') return 'AB';
+    if (val === 'OD') return 'OD';
+    if (typeof val === 'number') return Math.round(val);
+    return val;
+  };
   const formatPercentage = (val) => (val === null || val === undefined ? "-" : `${Math.round(val)}%`);
   const maxSum = totalMax || (subjects.length * maxPerSubject);
 
   // Compute average column totals directly from rows (bypasses showExamsWithoutAveraging=false giving 0)
-  const avgColObtained = rows.reduce((sum, row) => sum + (row.average ?? 0), 0);
-  const avgColMax = rows.reduce((sum, row) => sum + (row.avgMax ?? 0), 0);
+  const validAvgRows = rows.filter(r => typeof r.average === 'number');
+  const avgColObtained = validAvgRows.reduce((sum, row) => sum + (row.average ?? 0), 0);
+  const avgColMax = validAvgRows.reduce((sum, row) => sum + (row.avgMax ?? 0), 0);
   const avgColPercentage = avgColMax > 0 ? (avgColObtained / avgColMax) * 100 : null;
 
   // Re-order avgExams to match the left-to-right column order (selectedExams order)
@@ -352,7 +365,7 @@ function ExamTableSection({ title, titleClass, selectedExams, rows, colStats, to
                 })}
                 {showAverage && (
                   <td className={getAverageCellClass(row.average, row.avgMax)}>
-                    {row.average !== null ? Math.round(row.average) : 'AB'}
+                    {typeof row.average === 'number' ? Math.round(row.average) : (row.average === 'AB' ? 'AB' : '-')}
                   </td>
                 )}
               </tr>
@@ -361,12 +374,14 @@ function ExamTableSection({ title, titleClass, selectedExams, rows, colStats, to
             <tr className="summary-row">
               <td className="subject-name-cell">Total ({maxSum})</td>
               {showMaxColumn && <td className="max-mark-cell">{maxSum}</td>}
-              {selectedExams.map(exam => (
-                <td key={exam}>{colStats[exam].obtainedSum}</td>
-              ))}
+              {selectedExams.map(exam => {
+                const stats = colStats[exam];
+                const displayVal = (stats && (stats.presentCount > 0 || stats.absentCount > 0)) ? stats.obtainedSum : '-';
+                return <td key={exam}>{displayVal}</td>;
+              })}
               {showAverage && (
                 <td className="average-cell">
-                  {avgColMax > 0 ? `${Math.round(avgColObtained)} / ${Math.round(avgColMax)}` : Math.round(avgColObtained)}
+                  {avgColMax > 0 ? `${Math.round(avgColObtained)} / ${Math.round(avgColMax)}` : (validAvgRows.length > 0 ? Math.round(avgColObtained) : '-')}
                 </td>
               )}
             </tr>
@@ -375,7 +390,7 @@ function ExamTableSection({ title, titleClass, selectedExams, rows, colStats, to
               <td className="subject-name-cell">Percentage</td>
               {showMaxColumn && <td />}
               {selectedExams.map(exam => (
-                <td key={exam}>{formatPercentage(colStats[exam].percentage)}</td>
+                <td key={exam}>{formatPercentage(colStats[exam]?.percentage)}</td>
               ))}
               {showAverage && <td className="average-cell">{formatPercentage(avgColPercentage)}</td>}
             </tr>
@@ -427,7 +442,17 @@ export default function ReportCard({
 
   // Detect student's subject group (for 5-subject grouped classes)
   const studentGroup = detectStudentSubjectGroup(allSubjects, student.marks, exams);
-  const subjects = studentGroup || allSubjects;
+  
+  // Filter student's active subjects: only keep subjects where student has numeric marks, AB, or OD
+  const studentActiveSubjects = allSubjects.filter(sub => {
+    return Object.keys(exams).some(examName => {
+      const val = student.marks[examName]?.[sub];
+      return typeof val === 'number' || val === 'AB' || val === 'OD';
+    });
+  });
+  const subjects = (studentActiveSubjects.length >= 3 && studentActiveSubjects.length <= 5)
+    ? studentActiveSubjects
+    : (studentGroup || (allSubjects.length > 5 ? allSubjects.slice(0, 5) : allSubjects));
 
   // --- Show/hide average column ---
   const showAvgColumn = avgExamMode !== 'NONE';
@@ -534,11 +559,15 @@ export default function ReportCard({
         if (isNeet && (secKey === 'WT' || secKey === 'CPT' || secKey === 'RT')) {
           const sumSubjectMax = subjects.reduce((sum, sub) => sum + (firstExamMeta?.subjects[sub] || 0), 0);
           secTotalMax = sumSubjectMax > 0 ? sumSubjectMax : 720;
-        } else if (firstExamMeta?.subjects) {
-          secTotalMax = subjects.reduce((sum, sub) => sum + (firstExamMeta.subjects[sub] || (secKey === 'WT' ? 25 : (secKey === 'MT' ? 50 : 100))), 0);
+        } else if (isNeet) {
+          const sumSubjectMax = subjects.reduce((sum, sub) => sum + (firstExamMeta?.subjects[sub] || 0), 0);
+          secTotalMax = sumSubjectMax > 0 ? sumSubjectMax : 300;
         } else {
-          const defaultMax = secKey === 'WT' ? 25 : (secKey === 'MT' ? 50 : 100);
-          secTotalMax = subjects.length * defaultMax;
+          // Standard classes: Total is 500 (or 125 for 25-mark WT, 250 for 50-mark MT)
+          const sampleMax = subjects.length > 0 ? (firstExamMeta?.subjects[subjects[0]] || (secKey === 'WT' ? 25 : (secKey === 'MT' ? 50 : 100))) : 100;
+          if (sampleMax === 25) secTotalMax = 125;
+          else if (sampleMax === 50) secTotalMax = 250;
+          else secTotalMax = 500;
         }
 
         const secMaxPerSubject = Math.round(secTotalMax / subjects.length);
@@ -600,5 +629,11 @@ export default function ReportCard({
   );
 }
 
-const formatMark = (val) => (val === null || val === undefined ? "AB" : Math.round(val));
+const formatMark = (val) => {
+  if (val === null || val === undefined || val === '-' || val === '' || val === 'NA' || val === 'N/A') return '-';
+  if (val === 'AB') return 'AB';
+  if (val === 'OD') return 'OD';
+  if (typeof val === 'number') return Math.round(val);
+  return val;
+};
 const formatPercentage = (val) => (val === null || val === undefined ? "-" : `${Math.round(val)}%`);

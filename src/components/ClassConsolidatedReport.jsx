@@ -33,32 +33,56 @@ export default function ClassConsolidatedReport({
     return 100;
   };
 
-  const targetTotalMax = subjects.reduce((sum, sub) =>
-    sum + (targetMaxMarks?.[sub] || getSubjectMax(sub)), 0);
+  const isNeet = (className || '').toLowerCase().includes('neet');
+
+  const getExamTotalMax = (examName) => {
+    if (isNeet) return 720;
+    const sampleMax = subjects.length > 0 ? (exams[examName]?.subjects[subjects[0]] || 100) : 100;
+    if (sampleMax === 25) return 125;
+    if (sampleMax === 50) return 250;
+    return 500;
+  };
+
+  const targetTotalMax = isNeet ? 720 : 500;
 
   const fmt = (val) => {
-    if (val === null || val === undefined) return 'AB';
+    if (val === null || val === undefined || val === '-' || val === '' || val === 'NA' || val === 'N/A') return '-';
+    if (val === 'AB') return 'AB';
+    if (val === 'OD') return 'OD';
     if (typeof val === 'number') return Math.round(val);
     return val;
   };
 
   const calcStudentExamTotal = (student, examName) => {
-    let total = 0; let hasAny = false;
+    let total = 0;
+    let hasNumber = false;
+    let hasAb = false;
     subjects.forEach(sub => {
       const val = student.marks[examName]?.[sub];
-      if (val !== null && val !== undefined && typeof val === 'number') { total += val; hasAny = true; }
+      if (typeof val === 'number') {
+        total += val;
+        hasNumber = true;
+      } else if (val === 'AB') {
+        hasAb = true;
+      }
     });
-    return hasAny ? total : null;
+    if (hasNumber) return total;
+    if (hasAb) return 0;
+    return '-';
   };
 
   const calcStudentTgtTotal = (student) => {
-    if (!student.targets) return null;
-    let total = 0; let hasAny = false;
+    if (!student.targets) return '-';
+    let total = 0;
+    let hasNumber = false;
     subjects.forEach(sub => {
       const val = student.targets[sub];
-      if (val !== null && val !== undefined && typeof val === 'number') { total += val; hasAny = true; }
+      if (typeof val === 'number') {
+        total += val;
+        hasNumber = true;
+      }
     });
-    return hasAny ? total : null;
+    return hasNumber ? total : '-';
   };
 
   // Identify the last selected active exam (e.g. R-6, or R-5, R-4, etc.)
@@ -73,8 +97,8 @@ export default function ClassConsolidatedReport({
       const totalA = calcStudentExamTotal(a, lastActiveExam);
       const totalB = calcStudentExamTotal(b, lastActiveExam);
 
-      const valA = (totalA !== null && totalA !== undefined) ? totalA : -1;
-      const valB = (totalB !== null && totalB !== undefined) ? totalB : -1;
+      const valA = typeof totalA === 'number' ? totalA : -1;
+      const valB = typeof totalB === 'number' ? totalB : -1;
 
       if (valB !== valA) {
         return valB - valA; // Descending: High to Low
@@ -84,13 +108,15 @@ export default function ClassConsolidatedReport({
   }, [students, lastActiveExam, subjects]);
 
   const calcAverage = (valuesArray) => {
-    const valid = valuesArray.filter(v => v !== null && v !== undefined && typeof v === 'number');
-    if (valid.length === 0) return null;
+    const valid = (valuesArray || []).filter(v => typeof v === 'number');
+    if (valid.length === 0) return '-';
     return valid.reduce((s, v) => s + v, 0) / valid.length;
   };
 
   const getCellClass = (val, maxMark) => {
-    if (val === null || val === undefined || val === 'AB' || val === 'NA') return 'ccr-cell-ab';
+    if (val === null || val === undefined || val === '-' || val === '' || val === 'NA' || val === 'N/A') return 'ccr-cell-empty';
+    if (val === 'AB') return 'ccr-cell-ab';
+    if (val === 'OD') return 'ccr-cell-od';
     if (typeof val === 'number' && maxMark && maxMark > 0) {
       const passmark = maxMark * 0.4;
       if (val < passmark) return 'ccr-cell-fail';
@@ -226,7 +252,7 @@ export default function ClassConsolidatedReport({
                 })}
                 {showTgt && <th className="ccr-th-max ccr-th-max-tgt">{targetTotalMax}</th>}
                 {activeExams.map((exam, ei) => {
-                  const examTotal = subjects.reduce((s, sub) => s + getMaxMark(exam, sub), 0);
+                  const examTotal = getExamTotalMax(exam);
                   return (
                     <th key={`max-tot-${exam}`} className={`ccr-th-max ccr-th-max-r${ei + 1}`}>
                       {examTotal}
@@ -235,9 +261,7 @@ export default function ClassConsolidatedReport({
                 })}
                 {hasAvgCol && (
                   <th className="ccr-th-max ccr-th-max-avg">
-                    {activeExams.length > 0
-                      ? Math.round(activeExams.reduce((s, exam) => s + subjects.reduce((sum, sub) => sum + getMaxMark(exam, sub), 0), 0) / activeExams.length)
-                      : targetTotalMax}
+                    {activeExams.length > 0 ? getExamTotalMax(activeExams[0]) : targetTotalMax}
                   </th>
                 )}
               </tr>
@@ -285,7 +309,7 @@ export default function ClassConsolidatedReport({
                     )}
                     {activeExams.map(exam => {
                       const examTotal = calcStudentExamTotal(student, exam);
-                      const examMaxTotal = subjects.reduce((s, sub) => s + getMaxMark(exam, sub), 0);
+                      const examMaxTotal = getExamTotalMax(exam);
                       return (
                         <td key={`tot-${exam}`} className={`ccr-td-tot ${getCellClass(examTotal, examMaxTotal)}`}>
                           {fmt(examTotal)}
@@ -293,11 +317,13 @@ export default function ClassConsolidatedReport({
                       );
                     })}
                     {hasAvgCol && (() => {
-                      const studentExamTotals = activeExams.map(exam => calcStudentExamTotal(student, exam));
-                      const studentAvgTotal = calcAverage(studentExamTotals);
-                      const examMaxTotal = activeExams.length > 0
-                        ? (activeExams.reduce((s, exam) => s + subjects.reduce((sum, sub) => sum + getMaxMark(exam, sub), 0), 0) / activeExams.length)
-                        : targetTotalMax;
+                      const studentExamTotals = activeExams
+                        .map(exam => calcStudentExamTotal(student, exam))
+                        .filter(t => typeof t === 'number');
+                      const studentAvgTotal = studentExamTotals.length > 0
+                        ? (studentExamTotals.reduce((a, b) => a + b, 0) / studentExamTotals.length)
+                        : '-';
+                      const examMaxTotal = activeExams.length > 0 ? getExamTotalMax(activeExams[0]) : targetTotalMax;
                       return (
                         <td className={`ccr-td-tot ccr-td-avg-val ${getCellClass(studentAvgTotal, examMaxTotal)}`}>
                           {fmt(studentAvgTotal)}
@@ -344,8 +370,11 @@ export default function ClassConsolidatedReport({
                   </td>
                 )}
                 {activeExams.map(exam => {
-                  const avgTot = calcAverage(students.map(s => calcStudentExamTotal(s, exam)));
-                  const examMaxTotal = subjects.reduce((s, sub) => s + getMaxMark(exam, sub), 0);
+                  const studentTotals = students
+                    .map(s => calcStudentExamTotal(s, exam))
+                    .filter(t => typeof t === 'number');
+                  const avgTot = studentTotals.length > 0 ? (studentTotals.reduce((a, b) => a + b, 0) / studentTotals.length) : '-';
+                  const examMaxTotal = getExamTotalMax(exam);
                   return (
                     <td key={`avg-tot-${exam}`} className={`ccr-td-avg-mark ccr-td-avg-tot ${getCellClass(avgTot, examMaxTotal)}`}>
                       {fmt(avgTot)}
@@ -353,10 +382,18 @@ export default function ClassConsolidatedReport({
                   );
                 })}
                 {hasAvgCol && (() => {
-                  const classTotAvg = calcAverage(students.map(s => calcAverage(activeExams.map(e => calcStudentExamTotal(s, e)))));
-                  const examMaxTotal = activeExams.length > 0
-                    ? (activeExams.reduce((s, exam) => s + subjects.reduce((sum, sub) => sum + getMaxMark(exam, sub), 0), 0) / activeExams.length)
-                    : targetTotalMax;
+                  const studentTotals = students
+                    .map(s => {
+                      const tList = activeExams
+                        .map(exam => calcStudentExamTotal(s, exam))
+                        .filter(t => typeof t === 'number');
+                      return tList.length > 0 ? (tList.reduce((a, b) => a + b, 0) / tList.length) : null;
+                    })
+                    .filter(t => typeof t === 'number');
+                  const classTotAvg = studentTotals.length > 0
+                    ? (studentTotals.reduce((a, b) => a + b, 0) / studentTotals.length)
+                    : '-';
+                  const examMaxTotal = activeExams.length > 0 ? getExamTotalMax(activeExams[0]) : targetTotalMax;
                   return (
                     <td className={`ccr-td-avg-mark ccr-td-avg-tot ccr-td-avg-val ${getCellClass(classTotAvg, examMaxTotal)}`}>
                       {fmt(classTotAvg)}
