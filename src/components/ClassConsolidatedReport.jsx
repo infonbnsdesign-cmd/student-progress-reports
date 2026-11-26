@@ -156,7 +156,7 @@ export default function ClassConsolidatedReport({
           <div className="ccr-school-info">
             <h2 className="ccr-school-name">{schoolName}</h2>
             <p className="ccr-report-subtitle">
-              Subject Consolidated Performance Report{' '}
+              Subject-wise Exam Comparison Report{' '}
               <span className="ccr-subtitle-pipe">|</span>{' '}
               <span className="ccr-subtitle-year">{academicYear}</span>
             </p>
@@ -417,24 +417,6 @@ export default function ClassConsolidatedReport({
             ))}
           </div>
         )}
-
-        {/* MARK LEGEND */}
-        <div className="ccr-mark-legend">
-          <div className="ccr-legend-items">
-            <span><span className="legend-dot absent-dot" /> AB / NA</span>
-            <span><span className="legend-dot fail-dot" /> Below Pass Mark (&lt; 40%)</span>
-            <span><span className="legend-dot excellent-dot" /> &ge; 90%</span>
-          </div>
-          <div className="ccr-legend-info">
-            Pass Mark: 40% &nbsp;|&nbsp; Distinction: &ge; 90%
-          </div>
-        </div>
-
-        {/* FOOTER */}
-        <div className="ccr-report-footer">
-          <div className="ccr-signature-box">Class Teacher</div>
-          <div className="ccr-signature-box">Principal</div>
-        </div>
 
         {/* BOTTOM COLOUR BAND */}
         <div className="ccr-bottom-band" />
